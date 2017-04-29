@@ -9,6 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/mh-cbon/astutil"
 )
 
 var name = "lister"
@@ -99,12 +101,17 @@ func showHelp() {
 
 func processType(destName, srcName string) bytes.Buffer {
 
+	destPointed := astutil.GetPointedType(destName)
+	destConcrete := astutil.GetUnpointedType(destName)
+	srcIsPointer := astutil.IsAPointedType(srcName)
+	srcIsBasic := astutil.IsBasic(srcName)
+
 	var b bytes.Buffer
 	dest := &b
 
-	fmt.Fprintf(dest, `// %v implements a typed slice of %v`, getUnpointedType(destName), srcName)
+	fmt.Fprintf(dest, `// %v implements a typed slice of %v`, destConcrete, srcName)
 	fmt.Fprintln(dest, "")
-	fmt.Fprintf(dest, `type %v []%v`, getUnpointedType(destName), srcName)
+	fmt.Fprintf(dest, `type %v []%v`, destConcrete, srcName)
 
 	fmt.Fprintln(dest, "")
 
@@ -112,7 +119,7 @@ func processType(destName, srcName string) bytes.Buffer {
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func New%v() %v {
  return &%v{}
-}`, getUnpointedType(destName), getPointedType(destName), getUnpointedType(destName))
+}`, destConcrete, destPointed, destConcrete)
 
 	fmt.Fprintln(dest, "")
 
@@ -122,7 +129,7 @@ func processType(destName, srcName string) bytes.Buffer {
  items := *t
  items = append(items, x...)
  return t.Set(items)
-}`, getPointedType(destName), srcName, getPointedType(destName))
+}`, destPointed, srcName, destPointed)
 
 	fmt.Fprintln(dest, "")
 
@@ -132,7 +139,7 @@ func processType(destName, srcName string) bytes.Buffer {
  items := *t
  items = append(x, items...)
  return t.Set(items)
-}`, getPointedType(destName), srcName, getPointedType(destName))
+}`, destPointed, srcName, destPointed)
 
 	fmt.Fprintln(dest, "")
 
@@ -147,7 +154,7 @@ func processType(destName, srcName string) bytes.Buffer {
   t.Set(items)
  }
  return ret
-}`, getPointedType(destName), srcName, srcName)
+}`, destPointed, srcName, srcName)
 
 	fmt.Fprintln(dest, "")
 
@@ -162,13 +169,13 @@ func processType(destName, srcName string) bytes.Buffer {
   }
   t.Set(items)
   return ret
-}`, getPointedType(destName), srcName, srcName)
+}`, destPointed, srcName, srcName)
 
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// Index of given %v. It must implements Ider interface.`, srcName)
 	fmt.Fprintln(dest, "")
-	if isBasic(srcName) == false {
+	if srcIsBasic == false {
 		fmt.Fprintf(dest, `func (t %v) Index(s %v) int {
 	  ret := -1
 	  items := *t
@@ -179,8 +186,8 @@ func processType(destName, srcName string) bytes.Buffer {
 			}
 	  }
 	  return ret
-	}`, getPointedType(destName), srcName)
-	} else if isAPointedType(srcName) && isBasic(srcName) { // needed ?
+	}`, destPointed, srcName)
+	} else if srcIsPointer && srcIsBasic { // needed ?
 		fmt.Fprintf(dest, `func (t %v) Index(s %v) int {
 	  ret := -1
 	  items := *t
@@ -191,7 +198,7 @@ func processType(destName, srcName string) bytes.Buffer {
 			}
 	  }
 	  return ret
-	}`, getPointedType(destName), srcName)
+	}`, destPointed, srcName)
 	} else {
 		fmt.Fprintf(dest, `func (t %v) Index(s %v) int {
 	  ret := -1
@@ -203,7 +210,7 @@ func processType(destName, srcName string) bytes.Buffer {
 			}
 	  }
 	  return ret
-	}`, getPointedType(destName), srcName)
+	}`, destPointed, srcName)
 	}
 
 	fmt.Fprintln(dest, "")
@@ -218,7 +225,7 @@ func processType(destName, srcName string) bytes.Buffer {
 		return true
   }
   return false
-}`, getPointedType(destName))
+}`, destPointed)
 
 	fmt.Fprintln(dest, "")
 
@@ -230,7 +237,7 @@ func processType(destName, srcName string) bytes.Buffer {
 		return true
   }
   return false
-}`, getPointedType(destName), srcName)
+}`, destPointed, srcName)
 
 	fmt.Fprintln(dest, "")
 
@@ -246,7 +253,7 @@ func processType(destName, srcName string) bytes.Buffer {
     )...,
   )
   return t.Set(items)
-}`, getPointedType(destName), srcName, getPointedType(destName))
+}`, destPointed, srcName, destPointed)
 
 	fmt.Fprintln(dest, "")
 
@@ -260,7 +267,7 @@ func processType(destName, srcName string) bytes.Buffer {
   items = append(items[:start], append(s, items[start+length:]...)...)
   t.Set(items)
   return ret
-}`, getPointedType(destName), srcName, srcName)
+}`, destPointed, srcName, srcName)
 
 	fmt.Fprintln(dest, "")
 
@@ -269,7 +276,7 @@ func processType(destName, srcName string) bytes.Buffer {
 	fmt.Fprintf(dest, `func (t %v) Slice(start int, length int) []%v {
   items := *t
   return items[start:start+length]
-}`, getPointedType(destName), srcName)
+}`, destPointed, srcName)
 
 	fmt.Fprintln(dest, "")
 
@@ -281,7 +288,7 @@ func processType(destName, srcName string) bytes.Buffer {
     items[i], items[j] = items[j], items[i]
   }
   return t.Set(items)
-}`, getPointedType(destName), getPointedType(destName))
+}`, destPointed, destPointed)
 
 	fmt.Fprintln(dest, "")
 
@@ -289,7 +296,7 @@ func processType(destName, srcName string) bytes.Buffer {
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Len() int {
   return len(*t)
-}`, getPointedType(destName))
+}`, destPointed)
 
 	fmt.Fprintln(dest, "")
 
@@ -300,51 +307,9 @@ func processType(destName, srcName string) bytes.Buffer {
   items = append(items[:0], x...)
 	t = &items
 	return t
-}`, getPointedType(destName), srcName, getPointedType(destName))
+}`, destPointed, srcName, destPointed)
 
 	fmt.Fprintln(dest, "")
 
 	return b
-}
-
-func isAPointedType(t string) bool {
-	return t[0] == '*'
-}
-
-func getUnpointedType(t string) string {
-	if isAPointedType(t) {
-		return t[1:]
-	}
-	return t
-}
-func getPointedType(t string) string {
-	if !isAPointedType(t) {
-		t = "*" + t
-	}
-	return t
-}
-
-func isBasic(t string) bool {
-	if isAPointedType(t) {
-		t = t[1:]
-	}
-	//go:generate lister basic_gen.go string:StringSlice
-	basicTypes := NewStringSlice().Push(
-		"string",
-		"int",
-		"uint",
-		"int8",
-		"uint8",
-		"int16",
-		"uint16",
-		"int32",
-		"uint32",
-		"int64",
-		"uint64",
-		"float",
-		"float64",
-		"ufloat",
-		"ufloat64",
-	)
-	return basicTypes.Index(t) > -1
 }

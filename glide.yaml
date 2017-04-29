@@ -1,0 +1,4 @@
+package: github.com/mh-cbon/lister
+import:
+- package: github.com/mh-cbon/astutil
+  version: ^0.0.1
