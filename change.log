@@ -1,4 +1,14 @@
 
+0.0.1-beta4
+
+  * add __Filter__(f func(type) bool) []type: returns a new array with items matching f.
+
+  - mh-cbon <mh-cbon@users.noreply.github.com>
+
+-- mh-cbon <mh-cbon@users.noreply.github.com>; Sun, 30 Apr 2017 19:39:37 +0200
+
+
+
 0.0.1-beta3
 
   * Changed type implementation: do not use type alias `type xx []yy`, prefer an embeded property of `[]y`
