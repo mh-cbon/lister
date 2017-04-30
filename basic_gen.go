@@ -5,56 +5,49 @@ package main
 // do not edit
 
 // StringSlice implements a typed slice of string
-type StringSlice []string
+type StringSlice struct{ items []string }
 
 // NewStringSlice creates a new typed slice of string
 func NewStringSlice() *StringSlice {
-	return &StringSlice{}
+	return &StringSlice{items: []string{}}
 }
 
 // Push appends every string
 func (t *StringSlice) Push(x ...string) *StringSlice {
-	items := *t
-	items = append(items, x...)
-	return t.Set(items)
+	t.items = append(t.items, x...)
+	return t
 }
 
 // Unshift prepends every string
 func (t *StringSlice) Unshift(x ...string) *StringSlice {
-	items := *t
-	items = append(x, items...)
-	return t.Set(items)
+	t.items = append(x, t.items...)
+	return t
 }
 
-// Pop removes then reutrns the last string.
+// Pop removes then returns the last string.
 func (t *StringSlice) Pop() string {
 	var ret string
-	items := *t
-	if len(items) > 0 {
-		ret = items[len(items)-1]
-		items = append(items[:0], items[len(items)-1:]...)
-		t.Set(items)
+	if len(t.items) > 0 {
+		ret = t.items[len(t.items)-1]
+		t.items = append(t.items[:0], t.items[len(t.items)-1:]...)
 	}
 	return ret
 }
 
-// Shift removes then reutrns the first string.
+// Shift removes then returns the first string.
 func (t *StringSlice) Shift() string {
 	var ret string
-	items := *t
-	if len(items) > 0 {
-		ret = items[0]
-		items = append(items[:0], items[1:]...)
+	if len(t.items) > 0 {
+		ret = t.items[0]
+		t.items = append(t.items[:0], t.items[1:]...)
 	}
-	t.Set(items)
 	return ret
 }
 
 // Index of given string. It must implements Ider interface.
 func (t *StringSlice) Index(s string) int {
 	ret := -1
-	items := *t
-	for i, item := range items {
+	for i, item := range t.items {
 		if s == item {
 			ret = i
 			break
@@ -65,10 +58,8 @@ func (t *StringSlice) Index(s string) int {
 
 // RemoveAt removes a string at index i.
 func (t *StringSlice) RemoveAt(i int) bool {
-	items := *t
-	if i < len(items) {
-		items = append(items[:i], items[i+1:]...)
-		t.Set(items)
+	if i >= 0 && i < len(t.items) {
+		t.items = append(t.items[:i], t.items[i+1:]...)
 		return true
 	}
 	return false
@@ -85,51 +76,71 @@ func (t *StringSlice) Remove(s string) bool {
 
 // InsertAt adds given string at index i
 func (t *StringSlice) InsertAt(i int, s string) *StringSlice {
-	items := *t
-	items = append(
-		items[:i],
-		append(
-			append(items[:0], s),
-			items[i+1:]...,
-		)...,
-	)
-	return t.Set(items)
+	if i < 0 || i >= len(t.items) {
+		return t
+	}
+	res := []string{}
+	res = append(res, t.items[:0]...)
+	res = append(res, s)
+	res = append(res, t.items[i:]...)
+	t.items = res
+	return t
 }
 
 // Splice removes and returns a slice of string, starting at start, ending at start+length.
 // If any s is provided, they are inserted in place of the removed slice.
 func (t *StringSlice) Splice(start int, length int, s ...string) []string {
-	items := *t
-	ret := items[start : start+length]
-	items = append(items[:start], append(s, items[start+length:]...)...)
-	t.Set(items)
+	var ret []string
+	for i := 0; i < len(t.items); i++ {
+		if i >= start && i < start+length {
+			ret = append(ret, t.items[i])
+		}
+	}
+	if start >= 0 && start+length <= len(t.items) && start+length >= 0 {
+		t.items = append(
+			t.items[:start],
+			append(s,
+				t.items[start+length:]...,
+			)...,
+		)
+	}
 	return ret
 }
 
 // Slice returns a copied slice of string, starting at start, ending at start+length.
 func (t *StringSlice) Slice(start int, length int) []string {
-	items := *t
-	return items[start : start+length]
+	var ret []string
+	if start >= 0 && start+length <= len(t.items) && start+length >= 0 {
+		ret = t.items[start : start+length]
+	}
+	return ret
 }
 
 // Reverse the slice.
 func (t *StringSlice) Reverse() *StringSlice {
-	items := *t
-	for i, j := 0, len(items)-1; i < j; i, j = i+1, j-1 {
-		items[i], items[j] = items[j], items[i]
+	for i, j := 0, len(t.items)-1; i < j; i, j = i+1, j-1 {
+		t.items[i], t.items[j] = t.items[j], t.items[i]
 	}
-	return t.Set(items)
+	return t
 }
 
 // Len of the slice.
 func (t *StringSlice) Len() int {
-	return len(*t)
+	return len(t.items)
 }
 
 // Set the slice.
 func (t *StringSlice) Set(x []string) *StringSlice {
-	items := *t
-	items = append(items[:0], x...)
-	t = &items
+	t.items = append(t.items[:0], x...)
 	return t
+}
+
+// Get the slice.
+func (t *StringSlice) Get() []string {
+	return t.items
+}
+
+// At return the item at index i.
+func (t *StringSlice) At(i int) string {
+	return t.items[i]
 }

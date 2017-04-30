@@ -16,6 +16,8 @@ import (
 var name = "lister"
 var version = "0.0.0"
 
+//go:generate lister basic_gen.go string:StringSlice
+
 func main() {
 
 	var help bool
@@ -111,24 +113,23 @@ func processType(destName, srcName string) bytes.Buffer {
 
 	fmt.Fprintf(dest, `// %v implements a typed slice of %v`, destConcrete, srcName)
 	fmt.Fprintln(dest, "")
-	fmt.Fprintf(dest, `type %v []%v`, destConcrete, srcName)
+	fmt.Fprintf(dest, `type %v struct {items []%v}`, destConcrete, srcName)
 
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// New%v creates a new typed slice of %v`, destConcrete, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func New%v() %v {
- return &%v{}
-}`, destConcrete, destPointed, destConcrete)
+ return &%v{items: []%v{}}
+}`, destConcrete, destPointed, destConcrete, srcName)
 
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// Push appends every %v`, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Push(x ...%v) %v {
- items := *t
- items = append(items, x...)
- return t.Set(items)
+ t.items = append(t.items, x...)
+ return t
 }`, destPointed, srcName, destPointed)
 
 	fmt.Fprintln(dest, "")
@@ -136,38 +137,33 @@ func processType(destName, srcName string) bytes.Buffer {
 	fmt.Fprintf(dest, `// Unshift prepends every %v`, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Unshift(x ...%v) %v {
- items := *t
- items = append(x, items...)
- return t.Set(items)
+	t.items = append(x, t.items...)
+	return t
 }`, destPointed, srcName, destPointed)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Pop removes then reutrns the last %v.`, srcName)
+	fmt.Fprintf(dest, `// Pop removes then returns the last %v.`, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Pop() %v {
  var ret %v
- items := *t
- if len(items)>0 {
-  ret = items[len(items)-1]
-  items = append(items[:0], items[len(items)-1:]...)
-  t.Set(items)
+ if len(t.items)>0 {
+  ret = t.items[len(t.items)-1]
+  t.items = append(t.items[:0], t.items[len(t.items)-1:]...)
  }
  return ret
 }`, destPointed, srcName, srcName)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Shift removes then reutrns the first %v.`, srcName)
+	fmt.Fprintf(dest, `// Shift removes then returns the first %v.`, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Shift() %v {
   var ret %v
-  items := *t
-  if len(items)>0 {
-    ret = items[0]
-    items = append(items[:0], items[1:]...)
+  if len(t.items)>0 {
+    ret = t.items[0]
+    t.items = append(t.items[:0], t.items[1:]...)
   }
-  t.Set(items)
   return ret
 }`, destPointed, srcName, srcName)
 
@@ -178,8 +174,7 @@ func processType(destName, srcName string) bytes.Buffer {
 	if srcIsBasic == false {
 		fmt.Fprintf(dest, `func (t %v) Index(s %v) int {
 	  ret := -1
-	  items := *t
-	  for i,item:= range items {
+	  for i,item:= range t.items {
 			if s.GetID()==item.GetID() {
 				ret = i
 				break
@@ -190,8 +185,7 @@ func processType(destName, srcName string) bytes.Buffer {
 	} else if srcIsPointer && srcIsBasic { // needed ?
 		fmt.Fprintf(dest, `func (t %v) Index(s %v) int {
 	  ret := -1
-	  items := *t
-	  for i,item:= range items {
+	  for i,item:= range t.items {
 			if *s==*item {
 				ret = i
 				break
@@ -202,8 +196,7 @@ func processType(destName, srcName string) bytes.Buffer {
 	} else {
 		fmt.Fprintf(dest, `func (t %v) Index(s %v) int {
 	  ret := -1
-	  items := *t
-	  for i,item:= range items {
+	  for i,item:= range t.items {
 			if s==item {
 				ret = i
 				break
@@ -218,10 +211,8 @@ func processType(destName, srcName string) bytes.Buffer {
 	fmt.Fprintf(dest, `// RemoveAt removes a %v at index i.`, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) RemoveAt(i int) bool {
-  items := *t
-  if i<len(items) {
-    items = append(items[:i], items[i+1:]...)
-	  t.Set(items)
+  if i>=0 && i<len(t.items) {
+    t.items = append(t.items[:i], t.items[i+1:]...)
 		return true
   }
   return false
@@ -244,16 +235,16 @@ func processType(destName, srcName string) bytes.Buffer {
 	fmt.Fprintf(dest, `// InsertAt adds given %v at index i`, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) InsertAt(i int, s %v) %v {
-  items := *t
-  items = append(
-    items[:i],
-    append(
-      append(items[:0], s),
-      items[i+1:]...
-    )...,
-  )
-  return t.Set(items)
-}`, destPointed, srcName, destPointed)
+	if i<0 || i >= len(t.items) {
+		return t
+	}
+	res := []%v{}
+	res = append(res, t.items[:0]...)
+	res = append(res, s)
+	res = append(res, t.items[i:]...)
+	t.items = res
+	return t
+}`, destPointed, srcName, destPointed, srcName)
 
 	fmt.Fprintln(dest, "")
 
@@ -262,32 +253,44 @@ func processType(destName, srcName string) bytes.Buffer {
 	fmt.Fprintf(dest, `// If any s is provided, they are inserted in place of the removed slice.`)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Splice(start int, length int, s ...%v) []%v {
-		items := *t
-  ret := items[start:start+length]
-  items = append(items[:start], append(s, items[start+length:]...)...)
-  t.Set(items)
+	var ret []%v
+	for i := 0; i < len(t.items); i++ {
+		if i >= start && i < start+length {
+			ret = append(ret, t.items[i])
+		}
+	}
+	if start >= 0 && start+length <= len(t.items) && start+length >= 0 {
+		t.items = append(
+			t.items[:start],
+			append(s,
+				t.items[start+length:]...,
+			)...,
+		)
+	}
   return ret
-}`, destPointed, srcName, srcName)
+}`, destPointed, srcName, srcName, srcName)
 
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// Slice returns a copied slice of %v, starting at start, ending at start+length.`, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Slice(start int, length int) []%v {
-  items := *t
-  return items[start:start+length]
-}`, destPointed, srcName)
+  var ret []%v
+	if start >= 0 && start+length <= len(t.items) && start+length >= 0 {
+		ret = t.items[start:start+length]
+	}
+	return ret
+}`, destPointed, srcName, srcName)
 
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// Reverse the slice.`)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Reverse() %v {
-  items := *t
-  for i, j := 0, len(items)-1; i < j; i, j = i+1, j-1 {
-    items[i], items[j] = items[j], items[i]
+  for i, j := 0, len(t.items)-1; i < j; i, j = i+1, j-1 {
+    t.items[i], t.items[j] = t.items[j], t.items[i]
   }
-  return t.Set(items)
+  return t
 }`, destPointed, destPointed)
 
 	fmt.Fprintln(dest, "")
@@ -295,7 +298,7 @@ func processType(destName, srcName string) bytes.Buffer {
 	fmt.Fprintf(dest, `// Len of the slice.`)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Len() int {
-  return len(*t)
+  return len(t.items)
 }`, destPointed)
 
 	fmt.Fprintln(dest, "")
@@ -303,11 +306,24 @@ func processType(destName, srcName string) bytes.Buffer {
 	fmt.Fprintf(dest, `// Set the slice.`)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Set(x []%v) %v {
-	items := *t
-  items = append(items[:0], x...)
-	t = &items
+  t.items = append(t.items[:0], x...)
 	return t
 }`, destPointed, srcName, destPointed)
+	fmt.Fprintln(dest, "")
+
+	fmt.Fprintf(dest, `// Get the slice.`)
+	fmt.Fprintln(dest, "")
+	fmt.Fprintf(dest, `func (t %v) Get() []%v {
+	return t.items
+}`, destPointed, srcName)
+	fmt.Fprintln(dest, "")
+
+	fmt.Fprintf(dest, `// At return the item at index i.`)
+	fmt.Fprintln(dest, "")
+	fmt.Fprintf(dest, `func (t %v) At(i int) %v {
+	return t.items[i]
+}`, destPointed, srcName)
+	fmt.Fprintln(dest, "")
 
 	fmt.Fprintln(dest, "")
 
