@@ -56,6 +56,11 @@ func (t *StringSlice) Index(s string) int {
 	return ret
 }
 
+// Contains returns true if s in is t.
+func (t *StringSlice) Contains(s string) bool {
+	return t.Index(s) > -1
+}
+
 // RemoveAt removes a string at index i.
 func (t *StringSlice) RemoveAt(i int) bool {
 	if i >= 0 && i < len(t.items) {
@@ -154,4 +159,27 @@ func (t *StringSlice) Filter(f func(string) bool) *StringSlice {
 		}
 	}
 	return ret
+}
+
+// First returns the first value or default.
+func (t *StringSlice) First() string {
+	var ret string
+	if len(t.items) > 0 {
+		ret = t.items[0]
+	}
+	return ret
+}
+
+// Last returns the last value or default.
+func (t *StringSlice) Last() string {
+	var ret string
+	if len(t.items) > 0 {
+		ret = t.items[len(t.items)-1]
+	}
+	return ret
+}
+
+// Empty returns true if the slice is empty.
+func (t *StringSlice) Empty() bool {
+	return len(t.items) == 0
 }

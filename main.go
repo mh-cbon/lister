@@ -205,7 +205,13 @@ func processType(destName, srcName string) bytes.Buffer {
 	  return ret
 	}`, destPointed, srcName)
 	}
+	fmt.Fprintln(dest, "")
 
+	fmt.Fprintf(dest, `// Contains returns true if s in is t.`)
+	fmt.Fprintln(dest, "")
+	fmt.Fprintf(dest, `func (t %v) Contains(s %v) bool {
+  return t.Index(s)>-1
+}`, destPointed, srcName)
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// RemoveAt removes a %v at index i.`, srcName)
@@ -336,6 +342,35 @@ func processType(destName, srcName string) bytes.Buffer {
 	}
 	return ret
 }`, destPointed, srcName, destPointed, destConcrete)
+	fmt.Fprintln(dest, "")
+
+	fmt.Fprintf(dest, `// First returns the first value or default.`)
+	fmt.Fprintln(dest, "")
+	fmt.Fprintf(dest, `func (t %v) First() %v {
+	var ret %v
+	if len(t.items)>0 {
+		ret = t.items[0]
+	}
+	return ret
+}`, destPointed, srcName, srcName)
+	fmt.Fprintln(dest, "")
+
+	fmt.Fprintf(dest, `// Last returns the last value or default.`)
+	fmt.Fprintln(dest, "")
+	fmt.Fprintf(dest, `func (t %v) Last() %v {
+	var ret %v
+	if len(t.items)>0 {
+		ret = t.items[len(t.items)-1]
+	}
+	return ret
+}`, destPointed, srcName, srcName)
+	fmt.Fprintln(dest, "")
+
+	fmt.Fprintf(dest, `// Empty returns true if the slice is empty.`)
+	fmt.Fprintln(dest, "")
+	fmt.Fprintf(dest, `func (t %v) Empty() bool {
+	return len(t.items)==0
+}`, destPointed)
 	fmt.Fprintln(dest, "")
 
 	//todo: add support for struct properties.
