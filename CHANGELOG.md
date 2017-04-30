@@ -1,5 +1,20 @@
 # Changelog - lister
 
+### 0.0.1-beta2
+
+__Changes__
+
+- fix constructor comment to use unpointed type
+- glide update
+
+__Contributors__
+
+- mh-cbon
+
+Released by mh-cbon, Sun 30 Apr 2017 -
+[see the diff](https://github.com/mh-cbon/lister/compare/0.0.1-beta1...0.0.1-beta2#diff)
+______________
+
 ### 0.0.1-beta1
 
 __Changes__
