@@ -1,4 +1,15 @@
 
+UNRELEASED
+
+  * Changed type implementation: do not use type alias `type xx []yy`, prefer an embeded property of `[]y`
+  * added test
+
+  - mh-cbon <mh-cbon@users.noreply.github.com>
+
+-- mh-cbon <mh-cbon@users.noreply.github.com>; Sun, 30 Apr 2017 19:27:20 +0200
+
+
+
 0.0.1-beta2
 
   * fix constructor comment to use unpointed type
@@ -28,5 +39,3 @@
   - mh-cbon <mh-cbon@users.noreply.github.com>
 
 -- mh-cbon <mh-cbon@users.noreply.github.com>; Sat, 29 Apr 2017 14:57:56 +0200
-
-
