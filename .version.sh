@@ -5,6 +5,7 @@ PREBUMP=
 PREVERSION=
   philea -s "666 go vet %s" "666 go-fmt-fail %s"
   666 go run main.go -version
+  666 go generate github.com/mh-cbon/lister/demo
   666 changelog finalize --version !newversion!
   666 commit -q -m "changelog: !newversion!" -f change.log
   666 changelog md -o CHANGELOG.md --guess

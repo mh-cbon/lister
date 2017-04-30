@@ -90,56 +90,49 @@ package demo
 // do not edit
 
 // Tomates implements a typed slice of Tomate
-type Tomates []Tomate
+type Tomates struct{ items []Tomate }
 
 // NewTomates creates a new typed slice of Tomate
 func NewTomates() *Tomates {
-	return &Tomates{}
+	return &Tomates{items: []Tomate{}}
 }
 
 // Push appends every Tomate
 func (t *Tomates) Push(x ...Tomate) *Tomates {
-	items := *t
-	items = append(items, x...)
-	return t.Set(items)
+	t.items = append(t.items, x...)
+	return t
 }
 
 // Unshift prepends every Tomate
 func (t *Tomates) Unshift(x ...Tomate) *Tomates {
-	items := *t
-	items = append(x, items...)
-	return t.Set(items)
+	t.items = append(x, t.items...)
+	return t
 }
 
-// Pop removes then reutrns the last Tomate.
+// Pop removes then returns the last Tomate.
 func (t *Tomates) Pop() Tomate {
 	var ret Tomate
-	items := *t
-	if len(items) > 0 {
-		ret = items[len(items)-1]
-		items = append(items[:0], items[len(items)-1:]...)
-		t.Set(items)
+	if len(t.items) > 0 {
+		ret = t.items[len(t.items)-1]
+		t.items = append(t.items[:0], t.items[len(t.items)-1:]...)
 	}
 	return ret
 }
 
-// Shift removes then reutrns the first Tomate.
+// Shift removes then returns the first Tomate.
 func (t *Tomates) Shift() Tomate {
 	var ret Tomate
-	items := *t
-	if len(items) > 0 {
-		ret = items[0]
-		items = append(items[:0], items[1:]...)
+	if len(t.items) > 0 {
+		ret = t.items[0]
+		t.items = append(t.items[:0], t.items[1:]...)
 	}
-	t.Set(items)
 	return ret
 }
 
 // Index of given Tomate. It must implements Ider interface.
 func (t *Tomates) Index(s Tomate) int {
 	ret := -1
-	items := *t
-	for i, item := range items {
+	for i, item := range t.items {
 		if s.GetID() == item.GetID() {
 			ret = i
 			break
@@ -150,10 +143,8 @@ func (t *Tomates) Index(s Tomate) int {
 
 // RemoveAt removes a Tomate at index i.
 func (t *Tomates) RemoveAt(i int) bool {
-	items := *t
-	if i < len(items) {
-		items = append(items[:i], items[i+1:]...)
-		t.Set(items)
+	if i >= 0 && i < len(t.items) {
+		t.items = append(t.items[:i], t.items[i+1:]...)
 		return true
 	}
 	return false
@@ -170,106 +161,130 @@ func (t *Tomates) Remove(s Tomate) bool {
 
 // InsertAt adds given Tomate at index i
 func (t *Tomates) InsertAt(i int, s Tomate) *Tomates {
-	items := *t
-	items = append(
-		items[:i],
-		append(
-			append(items[:0], s),
-			items[i+1:]...,
-		)...,
-	)
-	return t.Set(items)
+	if i < 0 || i >= len(t.items) {
+		return t
+	}
+	res := []Tomate{}
+	res = append(res, t.items[:0]...)
+	res = append(res, s)
+	res = append(res, t.items[i:]...)
+	t.items = res
+	return t
 }
 
 // Splice removes and returns a slice of Tomate, starting at start, ending at start+length.
 // If any s is provided, they are inserted in place of the removed slice.
 func (t *Tomates) Splice(start int, length int, s ...Tomate) []Tomate {
-	items := *t
-	ret := items[start : start+length]
-	items = append(items[:start], append(s, items[start+length:]...)...)
-	t.Set(items)
+	var ret []Tomate
+	for i := 0; i < len(t.items); i++ {
+		if i >= start && i < start+length {
+			ret = append(ret, t.items[i])
+		}
+	}
+	if start >= 0 && start+length <= len(t.items) && start+length >= 0 {
+		t.items = append(
+			t.items[:start],
+			append(s,
+				t.items[start+length:]...,
+			)...,
+		)
+	}
 	return ret
 }
 
 // Slice returns a copied slice of Tomate, starting at start, ending at start+length.
 func (t *Tomates) Slice(start int, length int) []Tomate {
-	items := *t
-	return items[start : start+length]
-}
-
-// Reverse the slice.
-func (t *Tomates) Reverse() *Tomates {
-	items := *t
-	for i, j := 0, len(items)-1; i < j; i, j = i+1, j-1 {
-		items[i], items[j] = items[j], items[i]
-	}
-	return t.Set(items)
-}
-
-// Len of the slice.
-func (t *Tomates) Len() int {
-	return len(*t)
-}
-
-// Set the slice.
-func (t *Tomates) Set(x []Tomate) *Tomates {
-	items := *t
-	items = append(items[:0], x...)
-	t = &items
-	return t
-}
-
-// Poireaux implements a typed slice of *Poireau
-type Poireaux []*Poireau
-
-// NewPoireaux creates a new typed slice of *Poireau
-func NewPoireaux() *Poireaux {
-	return &Poireaux{}
-}
-
-// Push appends every *Poireau
-func (t *Poireaux) Push(x ...*Poireau) *Poireaux {
-	items := *t
-	items = append(items, x...)
-	return t.Set(items)
-}
-
-// Unshift prepends every *Poireau
-func (t *Poireaux) Unshift(x ...*Poireau) *Poireaux {
-	items := *t
-	items = append(x, items...)
-	return t.Set(items)
-}
-
-// Pop removes then reutrns the last *Poireau.
-func (t *Poireaux) Pop() *Poireau {
-	var ret *Poireau
-	items := *t
-	if len(items) > 0 {
-		ret = items[len(items)-1]
-		items = append(items[:0], items[len(items)-1:]...)
-		t.Set(items)
+	var ret []Tomate
+	if start >= 0 && start+length <= len(t.items) && start+length >= 0 {
+		ret = t.items[start : start+length]
 	}
 	return ret
 }
 
-// Shift removes then reutrns the first *Poireau.
+// Reverse the slice.
+func (t *Tomates) Reverse() *Tomates {
+	for i, j := 0, len(t.items)-1; i < j; i, j = i+1, j-1 {
+		t.items[i], t.items[j] = t.items[j], t.items[i]
+	}
+	return t
+}
+
+// Len of the slice.
+func (t *Tomates) Len() int {
+	return len(t.items)
+}
+
+// Set the slice.
+func (t *Tomates) Set(x []Tomate) *Tomates {
+	t.items = append(t.items[:0], x...)
+	return t
+}
+
+// Get the slice.
+func (t *Tomates) Get() []Tomate {
+	return t.items
+}
+
+// At return the item at index i.
+func (t *Tomates) At(i int) Tomate {
+	return t.items[i]
+}
+
+// Filter return a new Tomates with all items satisfying f.
+func (t *Tomates) Filter(f func(Tomate) bool) *Tomates {
+	ret := NewTomates()
+	for _, i := range t.items {
+		if f(i) {
+			ret.Push(i)
+		}
+	}
+	return ret
+}
+
+// Poireaux implements a typed slice of *Poireau
+type Poireaux struct{ items []*Poireau }
+
+// NewPoireaux creates a new typed slice of *Poireau
+func NewPoireaux() *Poireaux {
+	return &Poireaux{items: []*Poireau{}}
+}
+
+// Push appends every *Poireau
+func (t *Poireaux) Push(x ...*Poireau) *Poireaux {
+	t.items = append(t.items, x...)
+	return t
+}
+
+// Unshift prepends every *Poireau
+func (t *Poireaux) Unshift(x ...*Poireau) *Poireaux {
+	t.items = append(x, t.items...)
+	return t
+}
+
+// Pop removes then returns the last *Poireau.
+func (t *Poireaux) Pop() *Poireau {
+	var ret *Poireau
+	if len(t.items) > 0 {
+		ret = t.items[len(t.items)-1]
+		t.items = append(t.items[:0], t.items[len(t.items)-1:]...)
+	}
+	return ret
+}
+
+// Shift removes then returns the first *Poireau.
 func (t *Poireaux) Shift() *Poireau {
 	var ret *Poireau
-	items := *t
-	if len(items) > 0 {
-		ret = items[0]
-		items = append(items[:0], items[1:]...)
+	if len(t.items) > 0 {
+		ret = t.items[0]
+		t.items = append(t.items[:0], t.items[1:]...)
 	}
-	t.Set(items)
 	return ret
 }
 
 // Index of given *Poireau. It must implements Ider interface.
 func (t *Poireaux) Index(s *Poireau) int {
 	ret := -1
-	items := *t
-	for i, item := range items {
+	for i, item := range t.items {
 		if s.GetID() == item.GetID() {
 			ret = i
 			break
@@ -280,10 +295,8 @@ func (t *Poireaux) Index(s *Poireau) int {
 
 // RemoveAt removes a *Poireau at index i.
 func (t *Poireaux) RemoveAt(i int) bool {
-	items := *t
-	if i < len(items) {
-		items = append(items[:i], items[i+1:]...)
-		t.Set(items)
+	if i >= 0 && i < len(t.items) {
+		t.items = append(t.items[:i], t.items[i+1:]...)
 		return true
 	}
 	return false
@@ -300,53 +313,84 @@ func (t *Poireaux) Remove(s *Poireau) bool {
 
 // InsertAt adds given *Poireau at index i
 func (t *Poireaux) InsertAt(i int, s *Poireau) *Poireaux {
-	items := *t
-	items = append(
-		items[:i],
-		append(
-			append(items[:0], s),
-			items[i+1:]...,
-		)...,
-	)
-	return t.Set(items)
+	if i < 0 || i >= len(t.items) {
+		return t
+	}
+	res := []*Poireau{}
+	res = append(res, t.items[:0]...)
+	res = append(res, s)
+	res = append(res, t.items[i:]...)
+	t.items = res
+	return t
 }
 
 // Splice removes and returns a slice of *Poireau, starting at start, ending at start+length.
 // If any s is provided, they are inserted in place of the removed slice.
 func (t *Poireaux) Splice(start int, length int, s ...*Poireau) []*Poireau {
-	items := *t
-	ret := items[start : start+length]
-	items = append(items[:start], append(s, items[start+length:]...)...)
-	t.Set(items)
+	var ret []*Poireau
+	for i := 0; i < len(t.items); i++ {
+		if i >= start && i < start+length {
+			ret = append(ret, t.items[i])
+		}
+	}
+	if start >= 0 && start+length <= len(t.items) && start+length >= 0 {
+		t.items = append(
+			t.items[:start],
+			append(s,
+				t.items[start+length:]...,
+			)...,
+		)
+	}
 	return ret
 }
 
 // Slice returns a copied slice of *Poireau, starting at start, ending at start+length.
 func (t *Poireaux) Slice(start int, length int) []*Poireau {
-	items := *t
-	return items[start : start+length]
+	var ret []*Poireau
+	if start >= 0 && start+length <= len(t.items) && start+length >= 0 {
+		ret = t.items[start : start+length]
+	}
+	return ret
 }
 
 // Reverse the slice.
 func (t *Poireaux) Reverse() *Poireaux {
-	items := *t
-	for i, j := 0, len(items)-1; i < j; i, j = i+1, j-1 {
-		items[i], items[j] = items[j], items[i]
+	for i, j := 0, len(t.items)-1; i < j; i, j = i+1, j-1 {
+		t.items[i], t.items[j] = t.items[j], t.items[i]
 	}
-	return t.Set(items)
+	return t
 }
 
 // Len of the slice.
 func (t *Poireaux) Len() int {
-	return len(*t)
+	return len(t.items)
 }
 
 // Set the slice.
 func (t *Poireaux) Set(x []*Poireau) *Poireaux {
-	items := *t
-	items = append(items[:0], x...)
-	t = &items
+	t.items = append(t.items[:0], x...)
 	return t
+}
+
+// Get the slice.
+func (t *Poireaux) Get() []*Poireau {
+	return t.items
+}
+
+// At return the item at index i.
+func (t *Poireaux) At(i int) *Poireau {
+	return t.items[i]
+}
+
+// Filter return a new Poireaux with all items satisfying f.
+func (t *Poireaux) Filter(f func(*Poireau) bool) *Poireaux {
+	ret := NewPoireaux()
+	for _, i := range t.items {
+		if f(i) {
+			ret.Push(i)
+		}
+	}
+	return ret
 }
 ```
 
