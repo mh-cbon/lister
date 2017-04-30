@@ -5,6 +5,8 @@
 Package lister is a generator to generate typed slice.
 
 
+Choose your gun! | [Aux armes!](https://www.youtube.com/watch?v=hD-wD_AMRYc&t=7)
+
 # TOC
 - [Install](#install)
   - [Usage](#usage)
@@ -141,6 +143,11 @@ func (t *Tomates) Index(s Tomate) int {
 	return ret
 }
 
+// Contains returns true if s in is t.
+func (t *Tomates) Contains(s Tomate) bool {
+	return t.Index(s) > -1
+}
+
 // RemoveAt removes a Tomate at index i.
 func (t *Tomates) RemoveAt(i int) bool {
 	if i >= 0 && i < len(t.items) {
@@ -241,6 +248,29 @@ func (t *Tomates) Filter(f func(Tomate) bool) *Tomates {
 	return ret
 }
 
+// First returns the first value or default.
+func (t *Tomates) First() Tomate {
+	var ret Tomate
+	if len(t.items) > 0 {
+		ret = t.items[0]
+	}
+	return ret
+}
+
+// Last returns the last value or default.
+func (t *Tomates) Last() Tomate {
+	var ret Tomate
+	if len(t.items) > 0 {
+		ret = t.items[len(t.items)-1]
+	}
+	return ret
+}
+
+// Empty returns true if the slice is empty.
+func (t *Tomates) Empty() bool {
+	return len(t.items) == 0
+}
+
 // Poireaux implements a typed slice of *Poireau
 type Poireaux struct{ items []*Poireau }
 
@@ -291,6 +321,11 @@ func (t *Poireaux) Index(s *Poireau) int {
 		}
 	}
 	return ret
+}
+
+// Contains returns true if s in is t.
+func (t *Poireaux) Contains(s *Poireau) bool {
+	return t.Index(s) > -1
 }
 
 // RemoveAt removes a *Poireau at index i.
@@ -391,6 +426,29 @@ func (t *Poireaux) Filter(f func(*Poireau) bool) *Poireaux {
 		}
 	}
 	return ret
+}
+
+// First returns the first value or default.
+func (t *Poireaux) First() *Poireau {
+	var ret *Poireau
+	if len(t.items) > 0 {
+		ret = t.items[0]
+	}
+	return ret
+}
+
+// Last returns the last value or default.
+func (t *Poireaux) Last() *Poireau {
+	var ret *Poireau
+	if len(t.items) > 0 {
+		ret = t.items[len(t.items)-1]
+	}
+	return ret
+}
+
+// Empty returns true if the slice is empty.
+func (t *Poireaux) Empty() bool {
+	return len(t.items) == 0
 }
 ```
 
