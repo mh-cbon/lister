@@ -115,7 +115,7 @@ func processType(destName, srcName string) bytes.Buffer {
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// New%v creates a new typed slice of %v`, destName, srcName)
+	fmt.Fprintf(dest, `// New%v creates a new typed slice of %v`, destConcrete, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func New%v() %v {
  return &%v{}
