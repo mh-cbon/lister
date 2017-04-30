@@ -1,4 +1,15 @@
 
+0.0.1-beta2
+
+  * fix constructor comment to use unpointed type
+  * glide update
+
+  - mh-cbon <mh-cbon@users.noreply.github.com>
+
+-- mh-cbon <mh-cbon@users.noreply.github.com>; Sun, 30 Apr 2017 18:20:49 +0200
+
+
+
 0.0.1-beta1
 
   * dep: add glide support
