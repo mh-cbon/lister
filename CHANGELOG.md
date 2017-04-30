@@ -1,5 +1,27 @@
 # Changelog - lister
 
+### 0.0.1-beta5
+
+__Changes__
+
+- README
+- add new methods Contains, Empty, Last, First
+- add new methods
+  - __Contains__(s type) bool: returns true if the value s exists in t.
+  - __Empty__() bool: returns true if t is empty.
+  - __Last__() type: returns first or defaut value
+  - __First__() type: returns last or defaut value.
+
+
+
+__Contributors__
+
+- mh-cbon
+
+Released by mh-cbon, Mon 01 May 2017 -
+[see the diff](https://github.com/mh-cbon/lister/compare/0.0.1-beta4...0.0.1-beta5#diff)
+______________
+
 ### 0.0.1-beta4
 
 __Changes__
