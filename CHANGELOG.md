@@ -1,5 +1,19 @@
 # Changelog - lister
 
+### 0.0.1-beta4
+
+__Changes__
+
+- add __Filter__(f func(type) bool) []type: returns a new array with items matching f.
+
+__Contributors__
+
+- mh-cbon
+
+Released by mh-cbon, Sun 30 Apr 2017 -
+[see the diff](https://github.com/mh-cbon/lister/compare/0.0.1-beta3...0.0.1-beta4#diff)
+______________
+
 ### 0.0.1-beta3
 
 __Changes__
