@@ -454,3 +454,27 @@ func TestReverse(t *testing.T) {
 		t.Errorf("want %v got %v", swant, sgot)
 	}
 }
+func TestEmptyReverse(t *testing.T) {
+	s := NewStringSlice()
+	s.Unshift().Reverse()
+	want := 0
+	got := s.Len()
+	if want != got {
+		t.Errorf("want %v got %v", want, got)
+	}
+}
+
+func TestFilter(t *testing.T) {
+	s := NewStringSlice()
+	s = s.Unshift("first", "last").Filter(func(s string) bool { return s == "last" })
+	want := 1
+	got := s.Len()
+	if want != got {
+		t.Errorf("want %v got %v", want, got)
+	}
+	swant := "last"
+	sgot := s.At(0)
+	if swant != sgot {
+		t.Errorf("want %v got %v", swant, sgot)
+	}
+}

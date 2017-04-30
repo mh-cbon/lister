@@ -325,6 +325,22 @@ func processType(destName, srcName string) bytes.Buffer {
 }`, destPointed, srcName)
 	fmt.Fprintln(dest, "")
 
+	fmt.Fprintf(dest, `// Filter return a new %v with all items satisfying f.`, destName)
+	fmt.Fprintln(dest, "")
+	fmt.Fprintf(dest, `func (t %v) Filter(f func(%v) bool) %v {
+	ret := New%v()
+	for _, i := range t.items {
+		if f(i) {
+			ret.Push(i)
+		}
+	}
+	return ret
+}`, destPointed, srcName, destPointed, destConcrete)
+	fmt.Fprintln(dest, "")
+
+	//todo: add support for struct properties.
+	// somehow is hould be helpfull in regard to Filter.
+
 	fmt.Fprintln(dest, "")
 
 	return b

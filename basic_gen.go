@@ -144,3 +144,14 @@ func (t *StringSlice) Get() []string {
 func (t *StringSlice) At(i int) string {
 	return t.items[i]
 }
+
+// Filter return a new StringSlice with all items satisfying f.
+func (t *StringSlice) Filter(f func(string) bool) *StringSlice {
+	ret := NewStringSlice()
+	for _, i := range t.items {
+		if f(i) {
+			ret.Push(i)
+		}
+	}
+	return ret
+}
