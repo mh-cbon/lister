@@ -5,9 +5,11 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"go/ast"
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/mh-cbon/astutil"
@@ -47,12 +49,12 @@ func main() {
 	}
 	args := flag.Args()
 
+	pkgToLoad := getPkgToLoad()
+	fmt.Println(pkgToLoad)
+	prog := astutil.GetProgram(pkgToLoad).Package(pkgToLoad)
+
 	dest := os.Stdout
-
-	o := args[0]
-	restargs := args[1:]
-
-	if o != "-" {
+	if o := args[0]; o != "-" {
 		f, err := os.Create(o)
 		if err != nil {
 			panic(err)
@@ -70,11 +72,14 @@ func main() {
 	fmt.Fprintln(dest, `// do not edit`)
 	fmt.Fprintln(dest, ``)
 
-	for _, todo := range restargs {
+	var outBuf bytes.Buffer
+	for _, todo := range args[1:] {
 		srcName, destName := splitTypeArg(todo)
-		res := processType(destName, srcName)
-		io.Copy(dest, &res)
+		processType(&outBuf, destName, srcName)
+		foundStruct := astutil.GetStruct(prog, astutil.GetUnpointedType(srcName))
+		processFilter(&outBuf, foundStruct, destName, srcName)
 	}
+	io.Copy(dest, &outBuf)
 }
 
 func splitTypeArg(todo string) (src string, dest string) {
@@ -101,20 +106,62 @@ func showHelp() {
 	fmt.Println()
 }
 
-func processType(destName, srcName string) bytes.Buffer {
+func getPkgToLoad() string {
+	gopath := filepath.Join(os.Getenv("GOPATH"), "src")
+	pkgToLoad, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	return pkgToLoad[len(gopath)+1:]
+}
+
+func processFilter(dest io.Writer, s *ast.StructType, destName, srcName string) {
+	props := astutil.StructProps(s)
+
+	newStructProps := ""
+	for _, prop := range props {
+		//todo: find a way to detect if the type implements Eq or something like this.
+		propType := prop["type"]
+		if !astutil.IsArrayType(propType) {
+			propName := prop["name"]
+			newStructProps += fmt.Sprintf("By%v func(%v) func (%v) bool", propName, propType, srcName)
+			newStructProps += "\n"
+		}
+	}
+
+	if newStructProps != "" {
+		fmt.Fprintf(dest, `var Filter%v = struct {`, destName)
+		fmt.Fprintln(dest)
+		fmt.Fprintln(dest, newStructProps+"\n")
+		fmt.Fprintln(dest, "}{")
+		for _, prop := range props {
+			//todo: find a way to detect if the type implements Eq or something like this.
+			propType := prop["type"]
+			if !astutil.IsArrayType(propType) {
+				propName := prop["name"]
+				fmt.Fprintf(dest, `By%v: func(v %v) func(%v) bool {`, propName, propType, srcName)
+				fmt.Fprintf(dest, `	return func(o %v) bool {`, srcName)
+				fmt.Fprintf(dest, `	return o.%v==v`, propName)
+				fmt.Fprintf(dest, `	}`)
+				fmt.Fprintf(dest, `},`)
+				fmt.Fprintln(dest, "")
+			}
+		}
+		fmt.Fprintln(dest)
+		fmt.Fprintln(dest, "}")
+	}
+}
+
+func processType(dest io.Writer, destName, srcName string) {
 
 	destPointed := astutil.GetPointedType(destName)
 	destConcrete := astutil.GetUnpointedType(destName)
 	srcIsPointer := astutil.IsAPointedType(srcName)
 	srcIsBasic := astutil.IsBasic(srcName)
 
-	var b bytes.Buffer
-	dest := &b
-
 	fmt.Fprintf(dest, `// %v implements a typed slice of %v`, destConcrete, srcName)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `type %v struct {items []%v}`, destConcrete, srcName)
-
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// New%v creates a new typed slice of %v`, destConcrete, srcName)
@@ -333,15 +380,57 @@ func processType(destName, srcName string) bytes.Buffer {
 
 	fmt.Fprintf(dest, `// Filter return a new %v with all items satisfying f.`, destName)
 	fmt.Fprintln(dest, "")
-	fmt.Fprintf(dest, `func (t %v) Filter(f func(%v) bool) %v {
+	fmt.Fprintf(dest, `func (t %v) Filter(filters ...func(%v) bool) %v {
 	ret := New%v()
 	for _, i := range t.items {
-		if f(i) {
+		ok := true
+		for _, f := range filters {
+			ok = ok && f(i)
+			if ! ok {
+				break
+			}
+		}
+		if ok {
 			ret.Push(i)
 		}
 	}
 	return ret
 }`, destPointed, srcName, destPointed, destConcrete)
+	fmt.Fprintln(dest, "")
+
+	// todod: handle more cases like ArayType etc.
+	fmt.Fprintf(dest, `// Map return a new %v of each items modified by f.`, destName)
+	fmt.Fprintln(dest, "")
+	if astutil.IsAPointedType(srcName) {
+		fmt.Fprintf(dest, `func (t %v) Map(mappers ...func(%v) %v) %v {
+		ret := New%v()
+		for _, i := range t.items {
+			val := i
+			for _, m := range mappers {
+				val = m(val)
+				if val == nil {
+					break
+				}
+			}
+			if val != nil {
+				ret.Push(val)
+			}
+		}
+		return ret
+	}`, destPointed, srcName, srcName, destPointed, destConcrete)
+	} else {
+		fmt.Fprintf(dest, `func (t %v) Map(mappers ...func(%v) %v) %v {
+		ret := New%v()
+		for _, i := range t.items {
+			val := i
+			for _, m := range mappers {
+				val = m(val)
+			}
+			ret.Push(val)
+		}
+		return ret
+	}`, destPointed, srcName, srcName, destPointed, destConcrete)
+	}
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// First returns the first value or default.`)
@@ -373,10 +462,5 @@ func processType(destName, srcName string) bytes.Buffer {
 }`, destPointed)
 	fmt.Fprintln(dest, "")
 
-	//todo: add support for struct properties.
-	// somehow is hould be helpfull in regard to Filter.
-
 	fmt.Fprintln(dest, "")
-
-	return b
 }
