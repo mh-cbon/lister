@@ -28,7 +28,7 @@ go get github.com/mh-cbon/lister
 
 #### $ lister -help
 ```sh
-lister 0.0.0
+lister 0.0.1
 
 Usage
 
@@ -238,12 +238,32 @@ func (t *Tomates) At(i int) Tomate {
 }
 
 // Filter return a new Tomates with all items satisfying f.
-func (t *Tomates) Filter(f func(Tomate) bool) *Tomates {
+func (t *Tomates) Filter(filters ...func(Tomate) bool) *Tomates {
 	ret := NewTomates()
 	for _, i := range t.items {
-		if f(i) {
+		ok := true
+		for _, f := range filters {
+			ok = ok && f(i)
+			if !ok {
+				break
+			}
+		}
+		if ok {
 			ret.Push(i)
 		}
+	}
+	return ret
+}
+
+// Map return a new Tomates of each items modified by f.
+func (t *Tomates) Map(mappers ...func(Tomate) Tomate) *Tomates {
+	ret := NewTomates()
+	for _, i := range t.items {
+		val := i
+		for _, m := range mappers {
+			val = m(val)
+		}
+		ret.Push(val)
 	}
 	return ret
 }
@@ -269,6 +289,16 @@ func (t *Tomates) Last() Tomate {
 // Empty returns true if the slice is empty.
 func (t *Tomates) Empty() bool {
 	return len(t.items) == 0
+}
+
+var FilterTomates = struct {
+	ByName   func(string) func(Tomate) bool
+	ByWidth  func(uint64) func(Tomate) bool
+	ByHeight func(uint64) func(Tomate) bool
+}{
+	ByName:   func(v string) func(Tomate) bool { return func(o Tomate) bool { return o.Name == v } },
+	ByWidth:  func(v uint64) func(Tomate) bool { return func(o Tomate) bool { return o.Width == v } },
+	ByHeight: func(v uint64) func(Tomate) bool { return func(o Tomate) bool { return o.Height == v } },
 }
 
 // Poireaux implements a typed slice of *Poireau
@@ -418,11 +448,36 @@ func (t *Poireaux) At(i int) *Poireau {
 }
 
 // Filter return a new Poireaux with all items satisfying f.
-func (t *Poireaux) Filter(f func(*Poireau) bool) *Poireaux {
+func (t *Poireaux) Filter(filters ...func(*Poireau) bool) *Poireaux {
 	ret := NewPoireaux()
 	for _, i := range t.items {
-		if f(i) {
+		ok := true
+		for _, f := range filters {
+			ok = ok && f(i)
+			if !ok {
+				break
+			}
+		}
+		if ok {
 			ret.Push(i)
+		}
+	}
+	return ret
+}
+
+// Map return a new Poireaux of each items modified by f.
+func (t *Poireaux) Map(mappers ...func(*Poireau) *Poireau) *Poireaux {
+	ret := NewPoireaux()
+	for _, i := range t.items {
+		val := i
+		for _, m := range mappers {
+			val = m(val)
+			if val == nil {
+				break
+			}
+		}
+		if val != nil {
+			ret.Push(val)
 		}
 	}
 	return ret
@@ -449,6 +504,16 @@ func (t *Poireaux) Last() *Poireau {
 // Empty returns true if the slice is empty.
 func (t *Poireaux) Empty() bool {
 	return len(t.items) == 0
+}
+
+var FilterPoireaux = struct {
+	ByName   func(string) func(*Poireau) bool
+	ByWidth  func(uint64) func(*Poireau) bool
+	ByHeight func(uint64) func(*Poireau) bool
+}{
+	ByName:   func(v string) func(*Poireau) bool { return func(o *Poireau) bool { return o.Name == v } },
+	ByWidth:  func(v uint64) func(*Poireau) bool { return func(o *Poireau) bool { return o.Width == v } },
+	ByHeight: func(v uint64) func(*Poireau) bool { return func(o *Poireau) bool { return o.Height == v } },
 }
 ```
 
