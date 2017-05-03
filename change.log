@@ -1,4 +1,21 @@
 
+0.0.1
+
+  * __updated__
+    - Filters: the method now accepts multiple input filters func
+  * __new__
+    - Filters: Automatically generate pre defined filters for basic types
+    - Map: Added a new function to map a slice
+  * __dependency__
+    - update astutil
+
+
+  - mh-cbon <mh-cbon@users.noreply.github.com>
+
+-- mh-cbon <mh-cbon@users.noreply.github.com>; Wed, 03 May 2017 10:49:20 +0200
+
+
+
 0.0.1-beta5
 
   * README
@@ -8,6 +25,8 @@
     - __Empty__() bool: returns true if t is empty.
     - __Last__() type: returns first or defaut value
     - __First__() type: returns last or defaut value.
+
+
 
 
   - mh-cbon <mh-cbon@users.noreply.github.com>
