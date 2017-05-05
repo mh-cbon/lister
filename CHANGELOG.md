@@ -1,5 +1,20 @@
 # Changelog - lister
 
+### 0.0.2
+
+__Changes__
+
+- fix: do not try to creates filters if the input src type is a basic type like string.
+- ci: added travis support
+
+__Contributors__
+
+- mh-cbon
+
+Released by mh-cbon, Fri 05 May 2017 -
+[see the diff](https://github.com/mh-cbon/lister/compare/0.0.1...0.0.2#diff)
+______________
+
 ### 0.0.1
 
 __Changes__
@@ -11,6 +26,8 @@ __Changes__
   - Map: Added a new function to map a slice
 - __dependency__
   - update astutil
+
+
 
 
 
@@ -33,6 +50,8 @@ __Changes__
   - __Empty__() bool: returns true if t is empty.
   - __Last__() type: returns first or defaut value
   - __First__() type: returns last or defaut value.
+
+
 
 
 
