@@ -5,9 +5,11 @@ go:
 before_install:
   - sudo apt-get -qq update
   - mkdir -p ${GOPATH}/bin
+  - curl https://glide.sh/get | sh
 
 install:
   - cd $GOPATH/src/github.com/$TRAVIS_REPO_SLUG
+  - glide install
 
 script:
   - go test
