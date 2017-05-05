@@ -1,4 +1,15 @@
 
+0.0.2
+
+  * fix: do not try to creates filters if the input src type is a basic type like string.
+  * ci: added travis support
+
+  - mh-cbon <mh-cbon@users.noreply.github.com>
+
+-- mh-cbon <mh-cbon@users.noreply.github.com>; Fri, 05 May 2017 21:28:00 +0200
+
+
+
 0.0.1
 
   * __updated__
@@ -8,6 +19,8 @@
     - Map: Added a new function to map a slice
   * __dependency__
     - update astutil
+
+
 
 
   - mh-cbon <mh-cbon@users.noreply.github.com>
@@ -25,6 +38,8 @@
     - __Empty__() bool: returns true if t is empty.
     - __Last__() type: returns first or defaut value
     - __First__() type: returns last or defaut value.
+
+
 
 
 
