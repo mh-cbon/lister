@@ -9,7 +9,7 @@ LicenseColor: yellow
 
 {{pkgdoc}}
 
-Choose your gun! | [Aux armes!](https://www.youtube.com/watch?v=hD-wD_AMRYc&t=7)
+s/Choose your gun!/[Aux armes!](https://www.youtube.com/watch?v=hD-wD_AMRYc&t=7)/
 
 # {{toc 5}}
 
