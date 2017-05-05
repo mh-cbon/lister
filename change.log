@@ -1,4 +1,21 @@
 
+UNRELEASED
+
+  * Filters generator: fix ap roblem if the input dest name is stared
+  * travis fix
+  * travis fix
+  * fix travis
+  * fix travis
+  * fix travis
+  * trigger travis?
+  * trigger travis?
+
+  - mh-cbon <mh-cbon@users.noreply.github.com>
+
+-- mh-cbon <mh-cbon@users.noreply.github.com>; Fri, 05 May 2017 22:55:06 +0200
+
+
+
 0.0.2
 
   * fix: do not try to creates filters if the input src type is a basic type like string.
@@ -23,6 +40,7 @@
 
 
 
+
   - mh-cbon <mh-cbon@users.noreply.github.com>
 
 -- mh-cbon <mh-cbon@users.noreply.github.com>; Wed, 03 May 2017 10:49:20 +0200
@@ -38,6 +56,7 @@
     - __Empty__() bool: returns true if t is empty.
     - __Last__() type: returns first or defaut value
     - __First__() type: returns last or defaut value.
+
 
 
 

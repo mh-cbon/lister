@@ -134,6 +134,7 @@ func processFilter(dest io.Writer, s *ast.StructType, destName, srcName string) 
 	}
 
 	if newStructProps != "" {
+		fmt.Fprintf(dest, `// Filter%v provides filters for a struct.\n`, destConcrete)
 		fmt.Fprintf(dest, `var Filter%v = struct {`, destConcrete)
 		fmt.Fprintln(dest)
 		fmt.Fprintln(dest, newStructProps+"\n")
