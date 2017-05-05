@@ -118,6 +118,8 @@ func getPkgToLoad() string {
 }
 
 func processFilter(dest io.Writer, s *ast.StructType, destName, srcName string) {
+	destConcrete := astutil.GetUnpointedType(destName)
+
 	props := astutil.StructProps(s)
 
 	newStructProps := ""
@@ -132,7 +134,7 @@ func processFilter(dest io.Writer, s *ast.StructType, destName, srcName string) 
 	}
 
 	if newStructProps != "" {
-		fmt.Fprintf(dest, `var Filter%v = struct {`, destName)
+		fmt.Fprintf(dest, `var Filter%v = struct {`, destConcrete)
 		fmt.Fprintln(dest)
 		fmt.Fprintln(dest, newStructProps+"\n")
 		fmt.Fprintln(dest, "}{")
