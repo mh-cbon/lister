@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"go/ast"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -31,7 +32,7 @@ func main() {
 	flag.BoolVar(&h, "h", false, "Show help.")
 	flag.BoolVar(&ver, "version", false, "Show version.")
 	flag.BoolVar(&v, "v", false, "Show version.")
-	flag.StringVar(&p, "p", os.Getenv("GOPACKAGE"), "Package name of the new code.")
+	flag.StringVar(&p, "p", "", "Package name of the new code.")
 
 	flag.Parse()
 
@@ -55,6 +56,7 @@ func main() {
 
 	dest := os.Stdout
 	if o := args[0]; o != "-" {
+		os.MkdirAll(filepath.Dir(o), os.ModePerm)
 		f, err := os.Create(o)
 		if err != nil {
 			panic(err)
@@ -64,6 +66,13 @@ func main() {
 			f.Close()
 			exec.Command("go", "fmt", args[0]).Run()
 		}()
+		if p == "" {
+			p = filepath.Base(filepath.Dir(o))
+		}
+	}
+
+	if p == "" || p == "." {
+		p = os.Getenv("GOPACKAGE")
 	}
 
 	fmt.Fprintf(dest, "package %v\n\n", p)
@@ -78,6 +87,10 @@ func main() {
 		processType(&outBuf, destName, srcName)
 		if astutil.IsBasic(srcName) == false {
 			foundStruct := astutil.GetStruct(prog, astutil.GetUnpointedType(srcName))
+			if foundStruct == nil {
+				log.Println("Can not locate the type " + srcName)
+				continue
+			}
 			processFilter(&outBuf, foundStruct, destName, srcName)
 		}
 	}

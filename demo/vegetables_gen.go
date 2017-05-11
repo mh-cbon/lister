@@ -204,6 +204,7 @@ func (t *Tomates) Empty() bool {
 	return len(t.items) == 0
 }
 
+// FilterTomates provides filters for a struct.
 var FilterTomates = struct {
 	ByName   func(string) func(Tomate) bool
 	ByWidth  func(uint64) func(Tomate) bool
@@ -419,6 +420,7 @@ func (t *Poireaux) Empty() bool {
 	return len(t.items) == 0
 }
 
+// FilterPoireaux provides filters for a struct.
 var FilterPoireaux = struct {
 	ByName   func(string) func(*Poireau) bool
 	ByWidth  func(uint64) func(*Poireau) bool
