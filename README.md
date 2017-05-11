@@ -1,6 +1,6 @@
 # lister
 
-[![travis Status](https://travis-ci.org//mh-cbon/lister.svg?branch=master)](https://travis-ci.org//mh-cbon/lister) [![Appveyor Status](https://ci.appveyor.com/api/projects/status//github/mh-cbon/lister?branch=master&svg=true)](https://ci.appveyor.com/projects//mh-cbon/lister) [![Go Report Card](https://goreportcard.com/badge/github.com/mh-cbon/lister)](https://goreportcard.com/report/github.com/mh-cbon/lister) [![GoDoc](https://godoc.org/github.com/mh-cbon/lister?status.svg)](http://godoc.org/github.com/mh-cbon/lister) [![MIT License](http://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![travis Status](https://travis-ci.org/mh-cbon/lister.svg?branch=master)](https://travis-ci.org/mh-cbon/lister) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/mh-cbon/lister?branch=master&svg=true)](https://ci.appveyor.com/projects/mh-cbon/lister) [![Go Report Card](https://goreportcard.com/badge/github.com/mh-cbon/lister)](https://goreportcard.com/report/github.com/mh-cbon/lister) [![GoDoc](https://godoc.org/github.com/mh-cbon/lister?status.svg)](http://godoc.org/github.com/mh-cbon/lister) [![MIT License](http://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Package lister is a generator to generate typed slice.
 
@@ -28,7 +28,7 @@ go get github.com/mh-cbon/lister
 
 #### $ lister -help
 ```sh
-lister 0.0.2
+lister 0.0.0
 
 Usage
 
@@ -291,6 +291,7 @@ func (t *Tomates) Empty() bool {
 	return len(t.items) == 0
 }
 
+// FilterTomates provides filters for a struct.
 var FilterTomates = struct {
 	ByName   func(string) func(Tomate) bool
 	ByWidth  func(uint64) func(Tomate) bool
@@ -506,6 +507,7 @@ func (t *Poireaux) Empty() bool {
 	return len(t.items) == 0
 }
 
+// FilterPoireaux provides filters for a struct.
 var FilterPoireaux = struct {
 	ByName   func(string) func(*Poireau) bool
 	ByWidth  func(uint64) func(*Poireau) bool
