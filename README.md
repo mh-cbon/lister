@@ -37,8 +37,8 @@ Usage
   types:  A list of types such as src:dst.
           A type is defined by its package path and its type name,
           [pkgpath/]name
-          If the Package path is empty, it is set to the current package being generated.
-          Name can be a valid type identifier such as TypeName, *TypeName []TypeName 
+          If the Package path is empty, it is set to the package name being generated.
+          Name can be a valid type identifier such as TypeName, *TypeName, []TypeName 
   -p:     The name of the package output.
 ```
 
@@ -50,7 +50,7 @@ lister Tomate:gen/Tomates
 ```
 # API example
 
-Following example demonstates a program using it to generate a lister version of a type.
+Following example demonstates a program using it to generate a slice of `Tomate`
 
 #### > demo/lib.go
 ```go
@@ -84,7 +84,7 @@ func (t *Poireau) GetID() string {
 }
 ```
 
-Following code is the generated implementation of `Tomates` type.
+Following code is the generated code for a slice of `Tomate`.
 
 #### > demo/gen/tomates.go
 ```go

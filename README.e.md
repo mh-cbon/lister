@@ -28,11 +28,11 @@ lister Tomate:gen/Tomates
 ```
 # API example
 
-Following example demonstates a program using it to generate a lister version of a type.
+Following example demonstates a program using it to generate a slice of `Tomate`
 
 #### > {{cat "demo/lib.go" | color "go"}}
 
-Following code is the generated implementation of `Tomates` type.
+Following code is the generated code for a slice of `Tomate`.
 
 #### > {{cat "demo/gen/tomates.go" | color "go"}}
 

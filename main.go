@@ -215,11 +215,11 @@ func showHelp() {
 	fmt.Printf("  types:  A list of types such as src:dst.\n")
 	fmt.Printf("          A type is defined by its package path and its type name,\n")
 	fmt.Printf("          [pkgpath/]name\n")
-	fmt.Printf("          If the Package path is empty, it is set to the current package being generated.\n")
+	fmt.Printf("          If the Package path is empty, it is set to the package name being generated.\n")
 	// fmt.Printf("          If the Package path is a directory relative to the cwd, and the Package name is not provided\n")
 	// fmt.Printf("          the package path is set to this relative directory,\n")
 	// fmt.Printf("          the package name is set to the name of this directory.\n")
-	fmt.Printf("          Name can be a valid type identifier such as TypeName, *TypeName []TypeName \n")
+	fmt.Printf("          Name can be a valid type identifier such as TypeName, *TypeName, []TypeName \n")
 	fmt.Printf("  -p:     The name of the package output.\n")
 	fmt.Println()
 }
