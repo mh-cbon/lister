@@ -6,6 +6,7 @@ rm `which lister`
 go install
 
 
+lister - demo/Tomate:SliceTomate | grep "Empty(" || exit 1;
 lister - string:StringSlice | grep "Empty(" || exit 1;
 
 rm -fr gen_test

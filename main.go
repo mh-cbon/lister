@@ -7,6 +7,9 @@ import (
 	"go/ast"
 	"io"
 	"log"
+	"path/filepath"
+
+	"golang.org/x/tools/go/loader"
 
 	"github.com/mh-cbon/lister/utils"
 
@@ -55,9 +58,6 @@ func main() {
 		out = "-"
 	}
 
-	pkgToLoad := utils.GetPkgToLoad()
-	prog := astutil.GetProgram(pkgToLoad).Package(pkgToLoad)
-
 	todos, err := utils.NewTransformsArgs(outPkg).Parse(args)
 	if err != nil {
 		panic(err)
@@ -66,16 +66,38 @@ func main() {
 	filesOut := utils.NewFilesOut("github.com/mh-cbon/" + name)
 
 	for _, todo := range todos.Args {
+
+		srcName := todo.FromTypeName
+		toImport := todo.FromPkgPath
+		// if toImport == "" {
+		// 	toImport = utils.GetPkgToLoad()
+		// }
 		fileOut := filesOut.Get(todo.ToPath)
-		fileOut.PkgName = todo.ToPkgPath
+
+		var pkg *loader.PackageInfo
+		if !astutil.IsBasic(todo.FromTypeName) {
+
+			prog := astutil.GetProgram(toImport)
+			pkg = prog.Package(toImport)
+
+			if pkg.Pkg.Name() == "main" {
+				fileOut.PkgName = "main"
+			} else {
+				fileOut.PkgName = filepath.Base(todo.ToPkgPath)
+			}
+		} else {
+			fileOut.PkgName = filepath.Base(todo.ToPkgPath)
+
+		}
+
 		if todo.FromPkgPath != todo.ToPkgPath {
 			fileOut.AddImport(todo.FromPkgPath, "")
 		}
 
 		processType(&fileOut.Body, todo)
-		srcName := todo.FromTypeName
+
 		if astutil.IsBasic(srcName) == false {
-			foundStruct := astutil.GetStruct(prog, astutil.GetUnpointedType(srcName))
+			foundStruct := astutil.GetStruct(pkg, astutil.GetUnpointedType(srcName))
 			if foundStruct == nil {
 				log.Println("Can not locate the type " + srcName)
 				continue
@@ -113,6 +135,15 @@ func processFilter(dest io.Writer, s *ast.StructType, todo utils.TransformArg) {
 
 	srcName := todo.FromTypeName
 	destName := todo.ToTypeName
+	srcIsPointer := astutil.IsAPointedType(srcName)
+
+	srcNameFq := srcName
+	if todo.FromPkgPath != todo.ToPkgPath {
+		srcNameFq = fmt.Sprintf("%v.%v", filepath.Base(todo.FromPkgPath), todo.FromTypeName)
+		if srcIsPointer {
+			srcNameFq = "*" + srcNameFq
+		}
+	}
 
 	destConcrete := astutil.GetUnpointedType(destName)
 
@@ -124,7 +155,7 @@ func processFilter(dest io.Writer, s *ast.StructType, todo utils.TransformArg) {
 		propType := prop["type"]
 		if !astutil.IsArrayType(propType) {
 			propName := prop["name"]
-			newStructProps += fmt.Sprintf("By%v func(%v) func (%v) bool", propName, propType, srcName)
+			newStructProps += fmt.Sprintf("By%v func(%v) func (%v) bool", propName, propType, srcNameFq)
 			newStructProps += "\n"
 		}
 	}
@@ -140,8 +171,8 @@ func processFilter(dest io.Writer, s *ast.StructType, todo utils.TransformArg) {
 			propType := prop["type"]
 			if !astutil.IsArrayType(propType) {
 				propName := prop["name"]
-				fmt.Fprintf(dest, `By%v: func(v %v) func(%v) bool {`, propName, propType, srcName)
-				fmt.Fprintf(dest, `	return func(o %v) bool {`, srcName)
+				fmt.Fprintf(dest, `By%v: func(v %v) func(%v) bool {`, propName, propType, srcNameFq)
+				fmt.Fprintf(dest, `	return func(o %v) bool {`, srcNameFq)
 				fmt.Fprintf(dest, `	return o.%v==v`, propName)
 				fmt.Fprintf(dest, `	}`)
 				fmt.Fprintf(dest, `},`)
@@ -163,38 +194,46 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 	srcIsPointer := astutil.IsAPointedType(srcName)
 	srcIsBasic := astutil.IsBasic(srcName)
 
-	fmt.Fprintf(dest, `// %v implements a typed slice of %v`, destConcrete, srcName)
+	srcNameFq := srcName
+	if todo.FromPkgPath != todo.ToPkgPath {
+		srcNameFq = fmt.Sprintf("%v.%v", filepath.Base(todo.FromPkgPath), todo.FromTypeName)
+		if srcIsPointer {
+			srcNameFq = "*" + srcNameFq
+		}
+	}
+
+	fmt.Fprintf(dest, `// %v implements a typed slice of %v`, destConcrete, srcNameFq)
 	fmt.Fprintln(dest, "")
-	fmt.Fprintf(dest, `type %v struct {items []%v}`, destConcrete, srcName)
+	fmt.Fprintf(dest, `type %v struct {items []%v}`, destConcrete, srcNameFq)
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// New%v creates a new typed slice of %v`, destConcrete, srcName)
+	fmt.Fprintf(dest, `// New%v creates a new typed slice of %v`, destConcrete, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func New%v() %v {
  return &%v{items: []%v{}}
-}`, destConcrete, destPointed, destConcrete, srcName)
+}`, destConcrete, destPointed, destConcrete, srcNameFq)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Push appends every %v`, srcName)
+	fmt.Fprintf(dest, `// Push appends every %v`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Push(x ...%v) %v {
  t.items = append(t.items, x...)
  return t
-}`, destPointed, srcName, destPointed)
+}`, destPointed, srcNameFq, destPointed)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Unshift prepends every %v`, srcName)
+	fmt.Fprintf(dest, `// Unshift prepends every %v`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Unshift(x ...%v) %v {
 	t.items = append(x, t.items...)
 	return t
-}`, destPointed, srcName, destPointed)
+}`, destPointed, srcNameFq, destPointed)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Pop removes then returns the last %v.`, srcName)
+	fmt.Fprintf(dest, `// Pop removes then returns the last %v.`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Pop() %v {
  var ret %v
@@ -203,11 +242,11 @@ func processType(dest io.Writer, todo utils.TransformArg) {
   t.items = append(t.items[:0], t.items[len(t.items)-1:]...)
  }
  return ret
-}`, destPointed, srcName, srcName)
+}`, destPointed, srcNameFq, srcNameFq)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Shift removes then returns the first %v.`, srcName)
+	fmt.Fprintf(dest, `// Shift removes then returns the first %v.`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Shift() %v {
   var ret %v
@@ -216,11 +255,11 @@ func processType(dest io.Writer, todo utils.TransformArg) {
     t.items = append(t.items[:0], t.items[1:]...)
   }
   return ret
-}`, destPointed, srcName, srcName)
+}`, destPointed, srcNameFq, srcNameFq)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Index of given %v. It must implements Ider interface.`, srcName)
+	fmt.Fprintf(dest, `// Index of given %v. It must implements Ider interface.`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	if srcIsBasic == false {
 		fmt.Fprintf(dest, `func (t %v) Index(s %v) int {
@@ -232,7 +271,8 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 			}
 	  }
 	  return ret
-	}`, destPointed, srcName)
+	}`, destPointed, srcNameFq)
+
 	} else if srcIsPointer && srcIsBasic { // needed ?
 		fmt.Fprintf(dest, `func (t %v) Index(s %v) int {
 	  ret := -1
@@ -244,6 +284,7 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 	  }
 	  return ret
 	}`, destPointed, srcName)
+
 	} else {
 		fmt.Fprintf(dest, `func (t %v) Index(s %v) int {
 	  ret := -1
@@ -254,7 +295,7 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 			}
 	  }
 	  return ret
-	}`, destPointed, srcName)
+	}`, destPointed, srcNameFq)
 	}
 	fmt.Fprintln(dest, "")
 
@@ -262,10 +303,10 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Contains(s %v) bool {
   return t.Index(s)>-1
-}`, destPointed, srcName)
+}`, destPointed, srcNameFq)
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// RemoveAt removes a %v at index i.`, srcName)
+	fmt.Fprintf(dest, `// RemoveAt removes a %v at index i.`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) RemoveAt(i int) bool {
   if i>=0 && i<len(t.items) {
@@ -277,7 +318,7 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Remove removes given %v`, srcName)
+	fmt.Fprintf(dest, `// Remove removes given %v`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Remove(s %v) bool {
   if i := t.Index(s); i > -1 {
@@ -285,11 +326,11 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 		return true
   }
   return false
-}`, destPointed, srcName)
+}`, destPointed, srcNameFq)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// InsertAt adds given %v at index i`, srcName)
+	fmt.Fprintf(dest, `// InsertAt adds given %v at index i`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) InsertAt(i int, s %v) %v {
 	if i<0 || i >= len(t.items) {
@@ -301,11 +342,11 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 	res = append(res, t.items[i:]...)
 	t.items = res
 	return t
-}`, destPointed, srcName, destPointed, srcName)
+}`, destPointed, srcNameFq, destPointed, srcNameFq)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Splice removes and returns a slice of %v, starting at start, ending at start+length.`, srcName)
+	fmt.Fprintf(dest, `// Splice removes and returns a slice of %v, starting at start, ending at start+length.`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `// If any s is provided, they are inserted in place of the removed slice.`)
 	fmt.Fprintln(dest, "")
@@ -325,11 +366,11 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 		)
 	}
   return ret
-}`, destPointed, srcName, srcName, srcName)
+}`, destPointed, srcNameFq, srcNameFq, srcNameFq)
 
 	fmt.Fprintln(dest, "")
 
-	fmt.Fprintf(dest, `// Slice returns a copied slice of %v, starting at start, ending at start+length.`, srcName)
+	fmt.Fprintf(dest, `// Slice returns a copied slice of %v, starting at start, ending at start+length.`, srcNameFq)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Slice(start int, length int) []%v {
   var ret []%v
@@ -337,7 +378,7 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 		ret = t.items[start:start+length]
 	}
 	return ret
-}`, destPointed, srcName, srcName)
+}`, destPointed, srcNameFq, srcNameFq)
 
 	fmt.Fprintln(dest, "")
 
@@ -365,21 +406,21 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 	fmt.Fprintf(dest, `func (t %v) Set(x []%v) %v {
   t.items = append(t.items[:0], x...)
 	return t
-}`, destPointed, srcName, destPointed)
+}`, destPointed, srcNameFq, destPointed)
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// Get the slice.`)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) Get() []%v {
 	return t.items
-}`, destPointed, srcName)
+}`, destPointed, srcNameFq)
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// At return the item at index i.`)
 	fmt.Fprintln(dest, "")
 	fmt.Fprintf(dest, `func (t %v) At(i int) %v {
 	return t.items[i]
-}`, destPointed, srcName)
+}`, destPointed, srcNameFq)
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// Filter return a new %v with all items satisfying f.`, destName)
@@ -399,13 +440,14 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 		}
 	}
 	return ret
-}`, destPointed, srcName, destPointed, destConcrete)
+}`, destPointed, srcNameFq, destPointed, destConcrete)
 	fmt.Fprintln(dest, "")
 
-	// todod: handle more cases like ArayType etc.
+	// todo: handle more cases like ArrayType etc.
 	fmt.Fprintf(dest, `// Map return a new %v of each items modified by f.`, destName)
 	fmt.Fprintln(dest, "")
-	if astutil.IsAPointedType(srcName) {
+
+	if srcIsPointer {
 		fmt.Fprintf(dest, `func (t %v) Map(mappers ...func(%v) %v) %v {
 		ret := New%v()
 		for _, i := range t.items {
@@ -421,7 +463,8 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 			}
 		}
 		return ret
-	}`, destPointed, srcName, srcName, destPointed, destConcrete)
+	}`, destPointed, srcNameFq, srcNameFq, destPointed, destConcrete)
+
 	} else {
 		fmt.Fprintf(dest, `func (t %v) Map(mappers ...func(%v) %v) %v {
 		ret := New%v()
@@ -433,7 +476,7 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 			ret.Push(val)
 		}
 		return ret
-	}`, destPointed, srcName, srcName, destPointed, destConcrete)
+	}`, destPointed, srcNameFq, srcNameFq, destPointed, destConcrete)
 	}
 	fmt.Fprintln(dest, "")
 
@@ -445,7 +488,7 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 		ret = t.items[0]
 	}
 	return ret
-}`, destPointed, srcName, srcName)
+}`, destPointed, srcNameFq, srcNameFq)
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// Last returns the last value or default.`)
@@ -456,7 +499,7 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 		ret = t.items[len(t.items)-1]
 	}
 	return ret
-}`, destPointed, srcName, srcName)
+}`, destPointed, srcNameFq, srcNameFq)
 	fmt.Fprintln(dest, "")
 
 	fmt.Fprintf(dest, `// Empty returns true if the slice is empty.`)

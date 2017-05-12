@@ -144,6 +144,9 @@ func NewTransformsArgs(outPkg string) TransformArgs {
 	if outPkg == "" {
 		outPkg = os.Getenv("GOPACKAGE")
 	}
+	if outPkg == "main" {
+		outPkg = GetPkgToLoad()
+	}
 	return TransformArgs{PkgBase: outPkg}
 }
 
@@ -186,8 +189,8 @@ func (t TransformArgs) Parse(args []string) (TransformArgs, error) {
 			// if so, update the import path to its absolute path,
 			// if not, assume it is already an absolute package path.
 			d := filepath.Dir(y[0])
-			if _, err := os.Stat(d); os.IsExist(err) {
-				c.FromPkgPath = d
+			if _, err := os.Stat(d); !os.IsNotExist(err) {
+				c.FromPkgPath = filepath.Join(GetPkgToLoad(), d)
 			}
 		}
 
