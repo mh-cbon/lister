@@ -21,7 +21,11 @@ s/Choose your gun!/[Aux armes!](https://www.youtube.com/watch?v=hD-wD_AMRYc&t=7)
 
 # Install
 ```sh
-go get github.com/mh-cbon/lister
+mkdir -p $GOPATH/src/github.com/mh-cbon/lister
+cd $GOPATH/src/github.com/mh-cbon/lister
+git clone https://github.com/mh-cbon/lister.git .
+glide install
+go install
 ```
 
 ## Usage
