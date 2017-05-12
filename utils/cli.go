@@ -4,11 +4,27 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 )
+
+//go:generate lister PkgImport:PkgImports
+
+// GetPkgToLoad return the package to load
+func GetPkgToLoad() string {
+	gopath := filepath.Join(os.Getenv("GOPATH"), "src")
+	pkgToLoad, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	if len(pkgToLoad) < len(gopath) || pkgToLoad[:len(gopath)] != gopath {
+		panic(fmt.Errorf("unexpected gopath %q", gopath))
+	}
+	return pkgToLoad[len(gopath)+1:]
+}
 
 // FilesOut ...
 type FilesOut struct {
@@ -32,6 +48,16 @@ func (f *FilesOut) Get(s string) *FileOut {
 	f.Files = append(f.Files, r)
 	return r
 }
+func (f *FilesOut) Write(to string) {
+	for _, file := range f.Files {
+		if to == "-" {
+			file.Path = to
+		}
+		if err := file.Write(); err != nil {
+			log.Println(err)
+		}
+	}
+}
 
 // FileOut ...
 type FileOut struct {
@@ -39,6 +65,35 @@ type FileOut struct {
 	PkgName       string
 	Path          string
 	Body          bytes.Buffer
+	Imports       PkgImports
+}
+
+// PkgImport represents an import
+type PkgImport struct {
+	Path string
+	ID   string
+}
+
+// GetID of a PkgImport
+func (t PkgImport) GetID() string {
+	return t.Path
+}
+
+func (t PkgImport) String() string {
+	if t.ID == "" {
+		return fmt.Sprintf("%q", t.Path)
+	}
+	return fmt.Sprintf("%v %q", t.ID, t.Path)
+}
+
+// AddImport add new imports
+func (f *FileOut) AddImport(path, id string) {
+	path = strings.TrimSpace(path)
+	id = strings.TrimSpace(id)
+	e := PkgImport{Path: path, ID: id}
+	if len(path+id) > 0 && f.Imports.Contains(e) == false {
+		f.Imports.Push(e)
+	}
 }
 
 func (f *FileOut) Write() error {
@@ -132,8 +187,10 @@ func (t TransformArgs) Parse(args []string) (TransformArgs, error) {
 			d := filepath.Dir(y[1])
 			c.ToPkgPath = d
 			c.ToPath = filepath.Join(c.ToPkgPath, c.ToTypeName+".go")
-			c.ToPath = strings.ToLower(c.ToPath)
+		} else {
+			c.ToPath = filepath.Join(c.ToTypeName + ".go")
 		}
+		c.ToPath = strings.ToLower(c.ToPath)
 		t.Args = append(t.Args, c)
 	}
 	return t, nil

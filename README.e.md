@@ -23,10 +23,10 @@ s/Choose your gun!/[Aux armes!](https://www.youtube.com/watch?v=hD-wD_AMRYc&t=7)
 ## Cli examples
 
 ```sh
-# Create a slice of Tomate to Tomates to gen/tomates.go
-lister Tomate:gen/Tomates
+# Create a slice of Tomate to Tomates to tomates.go
+lister Tomate:Tomates
 # Create a slice of strings to stdout
-lister -p main string:StringSlice
+lister -p main - string:StringSlice
 ```
 # API example
 
@@ -36,7 +36,7 @@ Following example demonstates a program using it to generate a slice of `Tomate`
 
 Following is the generated code for a slice of `Tomate`.
 
-#### > {{cat "demo/gen/tomates.go" | color "go"}}
+#### > {{cat "demo/tomates.go" | color "go"}}
 
 # Recipes
 

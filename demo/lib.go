@@ -1,7 +1,7 @@
 // Package demo demonstrates usage of Lister.
 package demo
 
-//go:generate lister Tomate:gen/Tomates *Poireau:gen/Poireaux
+//go:generate lister Tomate:Tomates *Poireau:Poireaux
 
 // Tomate is a struct ot describe a Tomate.
 type Tomate struct {

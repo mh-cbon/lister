@@ -7,8 +7,6 @@ import (
 	"go/ast"
 	"io"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/mh-cbon/lister/utils"
 
@@ -18,6 +16,7 @@ import (
 var name = "lister"
 var version = "0.0.0"
 
+// for testing
 //go:generate lister string:gen/StringSlice
 
 func main() {
@@ -48,9 +47,15 @@ func main() {
 		showHelp()
 		return
 	}
-	args := flag.Args()
 
-	pkgToLoad := getPkgToLoad()
+	out := ""
+	args := flag.Args()
+	if args[0] == "-" {
+		args = args[1:]
+		out = "-"
+	}
+
+	pkgToLoad := utils.GetPkgToLoad()
 	prog := astutil.GetProgram(pkgToLoad).Package(pkgToLoad)
 
 	todos, err := utils.NewTransformsArgs(outPkg).Parse(args)
@@ -63,6 +68,9 @@ func main() {
 	for _, todo := range todos.Args {
 		fileOut := filesOut.Get(todo.ToPath)
 		fileOut.PkgName = todo.ToPkgPath
+		if todo.FromPkgPath != todo.ToPkgPath {
+			fileOut.AddImport(todo.FromPkgPath, "")
+		}
 
 		processType(&fileOut.Body, todo)
 		srcName := todo.FromTypeName
@@ -76,11 +84,7 @@ func main() {
 		}
 	}
 
-	for _, f := range filesOut.Files {
-		if err := f.Write(); err != nil {
-			log.Println(err)
-		}
-	}
+	filesOut.Write(out)
 }
 
 func showVer() {
@@ -103,18 +107,6 @@ func showHelp() {
 	fmt.Printf("          Name can be a valid type identifier such as TypeName, *TypeName, []TypeName \n")
 	fmt.Printf("  -p:     The name of the package output.\n")
 	fmt.Println()
-}
-
-func getPkgToLoad() string {
-	gopath := filepath.Join(os.Getenv("GOPATH"), "src")
-	pkgToLoad, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	if len(pkgToLoad) < len(gopath) || pkgToLoad[:len(gopath)] != gopath {
-		panic(fmt.Errorf("unexpected gopath %q", gopath))
-	}
-	return pkgToLoad[len(gopath)+1:]
 }
 
 func processFilter(dest io.Writer, s *ast.StructType, todo utils.TransformArg) {
