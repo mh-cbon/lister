@@ -2,7 +2,7 @@
 
 [![travis Status](https://travis-ci.org/mh-cbon/lister.svg?branch=master)](https://travis-ci.org/mh-cbon/lister) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/mh-cbon/lister?branch=master&svg=true)](https://ci.appveyor.com/projects/mh-cbon/lister) [![Go Report Card](https://goreportcard.com/badge/github.com/mh-cbon/lister)](https://goreportcard.com/report/github.com/mh-cbon/lister) [![GoDoc](https://godoc.org/github.com/mh-cbon/lister?status.svg)](http://godoc.org/github.com/mh-cbon/lister) [![MIT License](http://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Package lister is a generator to generate typed slice.
+Package lister generates typed slice.
 
 
 s/Choose your gun!/[Aux armes!](https://www.youtube.com/watch?v=hD-wD_AMRYc&t=7)/
@@ -46,7 +46,7 @@ Usage
 
 ```sh
 # Create a typed slice version of Tomate to Tomates
-lister tomates_gen.go Tomate:Tomates
+lister Tomate:gen/Tomates
 ```
 # API example
 
