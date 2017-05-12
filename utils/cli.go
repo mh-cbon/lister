@@ -113,6 +113,7 @@ func (t TransformArgs) Parse(args []string) (TransformArgs, error) {
 		c.FromPkgPath = t.PkgBase
 		c.ToPkgPath = t.PkgBase
 		c.ToTypeName = filepath.Base(y[1])
+		c.ToPath = "-"
 
 		if strings.Index(y[0], "/") > -1 {
 			// test if the dir exists locally to the package being generated,
@@ -130,9 +131,9 @@ func (t TransformArgs) Parse(args []string) (TransformArgs, error) {
 			// otherwise, it is the package being generated
 			d := filepath.Dir(y[1])
 			c.ToPkgPath = d
+			c.ToPath = filepath.Join(c.ToPkgPath, c.ToTypeName+".go")
+			c.ToPath = strings.ToLower(c.ToPath)
 		}
-		c.ToPath = filepath.Join(c.ToPkgPath, c.ToTypeName+".go")
-		c.ToPath = strings.ToLower(c.ToPath)
 		t.Args = append(t.Args, c)
 	}
 	return t, nil
