@@ -45,8 +45,10 @@ Usage
 ## Cli examples
 
 ```sh
-# Create a typed slice version of Tomate to Tomates
+# Create a slice of Tomate to Tomates to gen/tomates.go
 lister Tomate:gen/Tomates
+# Create a slice of strings to stdout
+lister -p main string:StringSlice
 ```
 # API example
 
