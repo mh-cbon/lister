@@ -17,3 +17,6 @@ ls -al demo | grep "gen" || exit 1;
 ls -al demo/gen | grep "tomates.go" || exit 1;
 
 rm -fr gen_test
+
+echo ""
+echo "ALL GOOD!"
