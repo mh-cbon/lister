@@ -1,7 +1,17 @@
 // Package demo demonstrates usage of Lister.
-package demo
+package main
+
+import "fmt"
 
 //go:generate lister Tomate:Tomates *Poireau:Poireaux
+
+func main() {
+	x := NewTomates()
+	x.Push(Tomate{Name: "Red"})
+	fmt.Println(
+		x.Filter(FilterTomates.ByName("Red")).First(),
+	)
+}
 
 // Tomate is a struct ot describe a Tomate.
 type Tomate struct {

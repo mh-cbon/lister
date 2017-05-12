@@ -32,7 +32,7 @@ lister -p main - string:StringSlice
 
 Following example demonstates a program using it to generate a slice of `Tomate`
 
-#### > {{cat "demo/lib.go" | color "go"}}
+#### > {{cat "demo/main.go" | color "go"}}
 
 Following is the generated code for a slice of `Tomate`.
 

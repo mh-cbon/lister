@@ -118,6 +118,17 @@ func (f *FileOut) Write() error {
 	fmt.Fprintln(dest, `// do not edit`)
 	fmt.Fprintln(dest, ``)
 
+	if !f.Imports.Empty() {
+		s := ""
+		f.Imports.Map(func(p PkgImport) PkgImport {
+			s += fmt.Sprintf("%v\n", p)
+			return p
+		})
+		fmt.Fprintln(dest, `import (`)
+		fmt.Fprintln(dest, s)
+		fmt.Fprintln(dest, `)`)
+	}
+
 	_, err := io.Copy(dest, &f.Body)
 	return err
 }
