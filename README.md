@@ -84,7 +84,7 @@ func (t *Poireau) GetID() string {
 }
 ```
 
-Following code is the generated code for a slice of `Tomate`.
+Following is the generated code for a slice of `Tomate`.
 
 #### > demo/gen/tomates.go
 ```go

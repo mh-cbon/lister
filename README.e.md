@@ -32,7 +32,7 @@ Following example demonstates a program using it to generate a slice of `Tomate`
 
 #### > {{cat "demo/lib.go" | color "go"}}
 
-Following code is the generated code for a slice of `Tomate`.
+Following is the generated code for a slice of `Tomate`.
 
 #### > {{cat "demo/gen/tomates.go" | color "go"}}
 
