@@ -9,8 +9,6 @@ import (
 	"log"
 	"path/filepath"
 
-	"golang.org/x/tools/go/loader"
-
 	"github.com/mh-cbon/lister/utils"
 
 	"github.com/mh-cbon/astutil"
@@ -58,7 +56,7 @@ func main() {
 		out = "-"
 	}
 
-	todos, err := utils.NewTransformsArgs(outPkg).Parse(args)
+	todos, err := utils.NewTransformsArgs("").Parse(args)
 	if err != nil {
 		panic(err)
 	}
@@ -69,25 +67,11 @@ func main() {
 
 		srcName := todo.FromTypeName
 		toImport := todo.FromPkgPath
-		// if toImport == "" {
-		// 	toImport = utils.GetPkgToLoad()
-		// }
 		fileOut := filesOut.Get(todo.ToPath)
+		fileOut.PkgName = outPkg
 
-		var pkg *loader.PackageInfo
-		if !astutil.IsBasic(todo.FromTypeName) {
-
-			prog := astutil.GetProgram(toImport)
-			pkg = prog.Package(toImport)
-
-			if pkg.Pkg.Name() == "main" {
-				fileOut.PkgName = "main"
-			} else {
-				fileOut.PkgName = filepath.Base(todo.ToPkgPath)
-			}
-		} else {
-			fileOut.PkgName = filepath.Base(todo.ToPkgPath)
-
+		if fileOut.PkgName == "" {
+			fileOut.PkgName = findOutPkg(toImport, todo)
 		}
 
 		if todo.FromPkgPath != todo.ToPkgPath {
@@ -97,6 +81,7 @@ func main() {
 		processType(&fileOut.Body, todo)
 
 		if astutil.IsBasic(srcName) == false {
+			pkg := astutil.GetProgramFast(toImport).Package(toImport)
 			foundStruct := astutil.GetStruct(pkg, astutil.GetUnpointedType(srcName))
 			if foundStruct == nil {
 				log.Println("Can not locate the type " + srcName)
@@ -107,6 +92,24 @@ func main() {
 	}
 
 	filesOut.Write(out)
+}
+
+func findOutPkg(toImport string, todo utils.TransformArg) string {
+	if !astutil.IsBasic(todo.FromTypeName) {
+		prog := astutil.GetProgramFast(toImport)
+		pkg := prog.Package(toImport)
+		return pkg.Pkg.Name()
+	}
+	if todo.ToPkgPath == "" {
+		prog := astutil.GetProgramFast(utils.GetPkgToLoad())
+		if len(prog.Imported) < 1 {
+			panic("impossible, add [-p name] option")
+		}
+		for _, p := range prog.Imported {
+			return p.Pkg.Name()
+		}
+	}
+	return filepath.Base(todo.ToPkgPath)
 }
 
 func showVer() {
