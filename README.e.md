@@ -24,7 +24,7 @@ s/Choose your gun!/[Aux armes!](https://www.youtube.com/watch?v=hD-wD_AMRYc&t=7)
 
 ```sh
 # Create a typed slice version of Tomate to Tomates
-lister tomates_gen.go Tomate:Tomates
+lister Tomate:gen/Tomates
 ```
 # API example
 
@@ -34,7 +34,7 @@ Following example demonstates a program using it to generate a lister version of
 
 Following code is the generated implementation of `Tomates` type.
 
-#### > {{cat "demo/vegetables_gen.go" | color "go"}}
+#### > {{cat "demo/gen/tomates.go" | color "go"}}
 
 # Recipes
 

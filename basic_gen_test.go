@@ -2,10 +2,12 @@ package main
 
 import (
 	"testing"
+
+	"github.com/mh-cbon/lister/gen"
 )
 
 func TestPush(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	s.Push("", "")
 	want := 2
 	got := s.Len()
@@ -15,7 +17,7 @@ func TestPush(t *testing.T) {
 }
 
 func TestUnshift(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	s.Unshift("", "")
 	want := 2
 	got := s.Len()
@@ -25,7 +27,7 @@ func TestUnshift(t *testing.T) {
 }
 
 func TestPop(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	sgot := s.Unshift("first", "last").Pop()
 	want := 1
 	got := s.Len()
@@ -39,7 +41,7 @@ func TestPop(t *testing.T) {
 }
 
 func TestNotPop(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	sgot := s.Pop()
 	want := 0
 	got := s.Len()
@@ -53,7 +55,7 @@ func TestNotPop(t *testing.T) {
 }
 
 func TestShift(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	sgot := s.Unshift("first", "last").Shift()
 	want := 1
 	got := s.Len()
@@ -67,7 +69,7 @@ func TestShift(t *testing.T) {
 }
 
 func TestNotShift(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	sgot := s.Shift()
 	want := 0
 	got := s.Len()
@@ -81,7 +83,7 @@ func TestNotShift(t *testing.T) {
 }
 
 func TestIndex(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	igot := s.Unshift("first", "last").Index("last")
 	want := 2
 	got := s.Len()
@@ -95,7 +97,7 @@ func TestIndex(t *testing.T) {
 }
 
 func TestNotIndex(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	igot := s.Unshift("first", "last").Index("wcwxcxcv")
 	want := 2
 	got := s.Len()
@@ -109,7 +111,7 @@ func TestNotIndex(t *testing.T) {
 }
 
 func TestRemoveAt(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	igot := s.Unshift("first", "last").RemoveAt(0)
 	want := 1
 	got := s.Len()
@@ -123,7 +125,7 @@ func TestRemoveAt(t *testing.T) {
 }
 
 func TestNotRemoveAt(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	igot := s.Unshift("first", "last").RemoveAt(-1)
 	want := 2
 	got := s.Len()
@@ -137,7 +139,7 @@ func TestNotRemoveAt(t *testing.T) {
 }
 
 func TestNotRemoveAt2(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	igot := s.Unshift("first", "last").RemoveAt(2)
 	want := 2
 	got := s.Len()
@@ -151,7 +153,7 @@ func TestNotRemoveAt2(t *testing.T) {
 }
 
 func TestInsertAt(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	s.Unshift("first", "last").InsertAt(0, "new")
 	want := 3
 	got := s.Len()
@@ -176,7 +178,7 @@ func TestInsertAt(t *testing.T) {
 }
 
 func TestNotInsertAt(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	s.Unshift("first", "last").InsertAt(-1, "new")
 	want := 2
 	got := s.Len()
@@ -196,7 +198,7 @@ func TestNotInsertAt(t *testing.T) {
 }
 
 func TestSplice(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Splice(0, 1)
 	want := 1
 	got := s.Len()
@@ -220,7 +222,7 @@ func TestSplice(t *testing.T) {
 }
 
 func TestSplice1(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Splice(1, 1)
 	want := 1
 	got := s.Len()
@@ -244,7 +246,7 @@ func TestSplice1(t *testing.T) {
 }
 
 func TestSpliceAdd(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	sgot := s.Unshift("first", "last").Splice(1, 1, "t", "r")[0]
 	want := 3
 	got := s.Len()
@@ -268,7 +270,7 @@ func TestSpliceAdd(t *testing.T) {
 }
 
 func TestNotSplice(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Splice(-1, 1)
 	want := 2
 	got := s.Len()
@@ -288,7 +290,7 @@ func TestNotSplice(t *testing.T) {
 }
 
 func TestNotSplice2(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Splice(0, -5)
 	want := 2
 	got := s.Len()
@@ -308,7 +310,7 @@ func TestNotSplice2(t *testing.T) {
 }
 
 func TestNotSplice3(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Splice(10, 5)
 	want := 2
 	got := s.Len()
@@ -328,7 +330,7 @@ func TestNotSplice3(t *testing.T) {
 }
 
 func TestSlice(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Slice(0, 1)
 	want := 2
 	got := s.Len()
@@ -352,7 +354,7 @@ func TestSlice(t *testing.T) {
 }
 
 func TestSlice1(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Slice(1, 1)
 	want := 2
 	got := s.Len()
@@ -376,7 +378,7 @@ func TestSlice1(t *testing.T) {
 }
 
 func TestNotSlice(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Slice(-1, 1)
 	want := 2
 	got := s.Len()
@@ -396,7 +398,7 @@ func TestNotSlice(t *testing.T) {
 }
 
 func TestNotSlice2(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Splice(0, -5)
 	want := 2
 	got := s.Len()
@@ -416,7 +418,7 @@ func TestNotSlice2(t *testing.T) {
 }
 
 func TestNotSlice3(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	ssgot := s.Unshift("first", "last").Slice(10, 5)
 	want := 2
 	got := s.Len()
@@ -436,7 +438,7 @@ func TestNotSlice3(t *testing.T) {
 }
 
 func TestReverse(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	s.Unshift("first", "last").Reverse()
 	want := 2
 	got := s.Len()
@@ -455,7 +457,7 @@ func TestReverse(t *testing.T) {
 	}
 }
 func TestEmptyReverse(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	s.Unshift().Reverse()
 	want := 0
 	got := s.Len()
@@ -465,7 +467,7 @@ func TestEmptyReverse(t *testing.T) {
 }
 
 func TestFilter(t *testing.T) {
-	s := NewStringSlice()
+	s := gen.NewStringSlice()
 	s = s.Unshift("first", "last").Filter(func(s string) bool { return s == "last" })
 	want := 1
 	got := s.Len()
