@@ -53,6 +53,8 @@ Usage
 lister Tomate:Tomates
 # Create a slice of strings to stdout
 lister -p main - string:StringSlice
+# verbose
+lister -vv - demo/*Tomate:SliceTomate 1>/dev/null
 ```
 # API example
 
