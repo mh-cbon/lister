@@ -7,6 +7,7 @@ import (
 	"go/ast"
 	"io"
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/mh-cbon/lister/utils"
@@ -16,6 +17,13 @@ import (
 
 var name = "lister"
 var version = "0.0.0"
+var verbose bool
+
+func logMsg(format string, args ...interface{}) {
+	if verbose {
+		fmt.Fprintf(os.Stderr, format+"\n", args...)
+	}
+}
 
 // for testing
 //go:generate lister string:gen/StringSlice
@@ -31,6 +39,7 @@ func main() {
 	flag.BoolVar(&h, "h", false, "Show help.")
 	flag.BoolVar(&ver, "version", false, "Show version.")
 	flag.BoolVar(&v, "v", false, "Show version.")
+	flag.BoolVar(&verbose, "vv", false, "More verbose")
 	flag.StringVar(&outPkg, "p", "", "Package name of the new code.")
 
 	flag.Parse()
@@ -49,11 +58,14 @@ func main() {
 		return
 	}
 
+	logMsg("outPkg %v", outPkg)
+
 	out := ""
 	args := flag.Args()
 	if args[0] == "-" {
 		args = args[1:]
 		out = "-"
+		logMsg("out is set to stdout")
 	}
 
 	todos, err := utils.NewTransformsArgs("").Parse(args)
@@ -70,12 +82,16 @@ func main() {
 		fileOut := filesOut.Get(todo.ToPath)
 		fileOut.PkgName = outPkg
 
+		logMsg("todo %v", todo)
+
 		if fileOut.PkgName == "" {
 			fileOut.PkgName = findOutPkg(toImport, todo)
 		}
+		logMsg("fileOut.PkgName %v", fileOut.PkgName)
 
 		if todo.FromPkgPath != todo.ToPkgPath {
 			fileOut.AddImport(todo.FromPkgPath, "")
+			logMsg("fileOut.AddImport %v", todo.FromPkgPath)
 		}
 
 		processType(&fileOut.Body, todo)
@@ -139,16 +155,16 @@ func processFilter(dest io.Writer, s *ast.StructType, todo utils.TransformArg) {
 	srcName := todo.FromTypeName
 	destName := todo.ToTypeName
 	srcIsPointer := astutil.IsAPointedType(srcName)
+	srcConcrete := astutil.GetUnpointedType(srcName)
+	destConcrete := astutil.GetUnpointedType(destName)
 
 	srcNameFq := srcName
 	if todo.FromPkgPath != todo.ToPkgPath {
-		srcNameFq = fmt.Sprintf("%v.%v", filepath.Base(todo.FromPkgPath), todo.FromTypeName)
+		srcNameFq = fmt.Sprintf("%v.%v", filepath.Base(todo.FromPkgPath), srcConcrete)
 		if srcIsPointer {
 			srcNameFq = "*" + srcNameFq
 		}
 	}
-
-	destConcrete := astutil.GetUnpointedType(destName)
 
 	props := astutil.StructProps(s)
 
@@ -196,10 +212,11 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 	destConcrete := astutil.GetUnpointedType(destName)
 	srcIsPointer := astutil.IsAPointedType(srcName)
 	srcIsBasic := astutil.IsBasic(srcName)
+	srcConcrete := astutil.GetUnpointedType(srcName)
 
 	srcNameFq := srcName
 	if todo.FromPkgPath != todo.ToPkgPath {
-		srcNameFq = fmt.Sprintf("%v.%v", filepath.Base(todo.FromPkgPath), todo.FromTypeName)
+		srcNameFq = fmt.Sprintf("%v.%v", filepath.Base(todo.FromPkgPath), srcConcrete)
 		if srcIsPointer {
 			srcNameFq = "*" + srcNameFq
 		}

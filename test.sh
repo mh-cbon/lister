@@ -8,6 +8,8 @@ go install
 
 lister - demo/Tomate:SliceTomate | grep "Empty(" || exit 1;
 lister - string:StringSlice | grep "Empty(" || exit 1;
+lister - demo/*Tomate:SliceTomate | grep "]*demo.Tomate" || exit 1;
+lister - demo/Tomate:*SliceTomate | grep "]demo.Tomate" || exit 1;
 
 lister - demo/Tomate:SliceTomate | grep "package main" || exit 1;
 lister -p nop - demo/Tomate:SliceTomate | grep "package nop" || exit 1;
