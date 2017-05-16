@@ -4,6 +4,10 @@ package main
 // github.com/mh-cbon/lister
 // do not edit
 
+import (
+	"encoding/json"
+)
+
 // Poireaux implements a typed slice of *Poireau
 type Poireaux struct{ items []*Poireau }
 
@@ -207,6 +211,21 @@ func (t *Poireaux) Last() *Poireau {
 // Empty returns true if the slice is empty.
 func (t *Poireaux) Empty() bool {
 	return len(t.items) == 0
+}
+
+//UnmarshalJSON JSON unserializes Poireaux
+func (t *Poireaux) UnmarshalJSON(b []byte) error {
+	var items []*Poireau
+	if err := json.Unmarshal(b, &items); err != nil {
+		return err
+	}
+	t.items = items
+	return nil
+}
+
+//MarshalJSON JSON serializes Poireaux
+func (t *Poireaux) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.items)
 }
 
 // FilterPoireaux provides filters for a struct.

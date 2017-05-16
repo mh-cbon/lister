@@ -4,6 +4,10 @@ package main
 // github.com/mh-cbon/lister
 // do not edit
 
+import (
+	"encoding/json"
+)
+
 // Tomates implements a typed slice of Tomate
 type Tomates struct{ items []Tomate }
 
@@ -202,6 +206,21 @@ func (t *Tomates) Last() Tomate {
 // Empty returns true if the slice is empty.
 func (t *Tomates) Empty() bool {
 	return len(t.items) == 0
+}
+
+//UnmarshalJSON JSON unserializes Tomates
+func (t *Tomates) UnmarshalJSON(b []byte) error {
+	var items []Tomate
+	if err := json.Unmarshal(b, &items); err != nil {
+		return err
+	}
+	t.items = items
+	return nil
+}
+
+//MarshalJSON JSON serializes Tomates
+func (t *Tomates) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.items)
 }
 
 // FilterTomates provides filters for a struct.

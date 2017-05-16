@@ -93,6 +93,7 @@ func main() {
 			fileOut.AddImport(todo.FromPkgPath, "")
 			logMsg("fileOut.AddImport %v", todo.FromPkgPath)
 		}
+		fileOut.AddImport("encoding/json", "")
 
 		processType(&fileOut.Body, todo)
 
@@ -528,6 +529,28 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 	return len(t.items)==0
 }`, destPointed)
 	fmt.Fprintln(dest, "")
+
+	// Add marshalling capabilities
+	fmt.Fprintf(dest, `
+//UnmarshalJSON JSON unserializes %v
+func (t %v) UnmarshalJSON(b []byte) error {
+	var items []%v
+	if err := json.Unmarshal(b, &items); err != nil {
+		return err
+	}
+	t.items = items
+	return nil
+}
+`, destConcrete, destPointed, srcNameFq)
+	fmt.Fprintln(dest)
+
+	fmt.Fprintf(dest, `
+//MarshalJSON JSON serializes %v
+func (t %v) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.items)
+}
+`, destConcrete, destPointed)
+	fmt.Fprintln(dest)
 
 	fmt.Fprintln(dest, "")
 }
