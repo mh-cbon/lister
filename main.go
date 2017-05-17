@@ -82,6 +82,10 @@ func main() {
 		fileOut := filesOut.Get(todo.ToPath)
 		fileOut.PkgName = outPkg
 
+		if toImport == "" {
+			toImport = utils.GetPkgToLoad()
+		}
+
 		logMsg("todo %v", todo)
 
 		if fileOut.PkgName == "" {
@@ -89,7 +93,7 @@ func main() {
 		}
 		logMsg("fileOut.PkgName %v", fileOut.PkgName)
 
-		if todo.FromPkgPath != todo.ToPkgPath {
+		if todo.FromPkgPath != todo.ToPkgPath && !astutil.IsBasic(todo.FromTypeName) {
 			fileOut.AddImport(todo.FromPkgPath, "")
 			logMsg("fileOut.AddImport %v", todo.FromPkgPath)
 		}
@@ -160,7 +164,7 @@ func processFilter(dest io.Writer, s *ast.StructType, todo utils.TransformArg) {
 	destConcrete := astutil.GetUnpointedType(destName)
 
 	srcNameFq := srcName
-	if todo.FromPkgPath != todo.ToPkgPath {
+	if todo.FromPkgPath != todo.ToPkgPath && !astutil.IsBasic(todo.FromTypeName) {
 		srcNameFq = fmt.Sprintf("%v.%v", filepath.Base(todo.FromPkgPath), srcConcrete)
 		if srcIsPointer {
 			srcNameFq = "*" + srcNameFq
@@ -216,7 +220,7 @@ func processType(dest io.Writer, todo utils.TransformArg) {
 	srcConcrete := astutil.GetUnpointedType(srcName)
 
 	srcNameFq := srcName
-	if todo.FromPkgPath != todo.ToPkgPath {
+	if todo.FromPkgPath != todo.ToPkgPath && !astutil.IsBasic(todo.FromTypeName) {
 		srcNameFq = fmt.Sprintf("%v.%v", filepath.Base(todo.FromPkgPath), srcConcrete)
 		if srcIsPointer {
 			srcNameFq = "*" + srcNameFq

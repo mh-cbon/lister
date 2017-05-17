@@ -204,6 +204,9 @@ func (t TransformArgs) Parse(args []string) (TransformArgs, error) {
 		} else {
 			c.ToPath = filepath.Join(c.ToTypeName + ".go")
 		}
+		c.ToPath = strings.Replace(c.ToPath, "*", "", -1)
+		c.ToPath = strings.Replace(c.ToPath, "[", "", -1)
+		c.ToPath = strings.Replace(c.ToPath, "]", "", -1)
 		c.ToPath = strings.ToLower(c.ToPath)
 		t.Args = append(t.Args, c)
 	}
